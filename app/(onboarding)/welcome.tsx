@@ -1,0 +1,56 @@
+import { View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { Image } from 'expo-image';
+import { Text } from '@/shared/components/ui/text';
+import { Button } from '@/shared/components/ui/button';
+import { Icon } from '@/shared/components/ui/icon';
+import { ChevronRight } from 'lucide-react-native';
+
+export default function WelcomeScreen() {
+  return (
+    <SafeAreaView className="flex-1 bg-background">
+      <View className="flex-1 items-center justify-center px-8">
+        {/* Logo */}
+        <View className="mb-8 h-28 w-28 items-center justify-center rounded-3xl bg-primary">
+          <Image
+            source={require('@assets/images/icon.png')}
+            className="h-24 w-24 rounded-2xl"
+            contentFit="contain"
+          />
+        </View>
+
+        {/* App Name */}
+        <Text className="mb-3 text-center text-4xl font-extrabold tracking-tight text-foreground">
+          The Prime Way
+        </Text>
+
+        {/* Tagline */}
+        <Text className="mb-2 text-center text-lg text-muted-foreground">
+          Your all-in-one life operating system
+        </Text>
+        <Text className="text-center text-base text-muted-foreground/70">
+          Tasks, habits, goals, finances, and more{'\n'}all in one place.
+        </Text>
+      </View>
+
+      {/* Bottom CTA */}
+      <View className="px-8 pb-6">
+        <Button
+          size="lg"
+          className="w-full"
+          onPress={() => router.push('/(onboarding)/goals')}
+        >
+          <Text className="text-base font-semibold text-primary-foreground">
+            Get Started
+          </Text>
+          <Icon as={ChevronRight} size={20} className="text-primary-foreground" />
+        </Button>
+
+        <Text className="mt-4 text-center text-sm text-muted-foreground">
+          This will only take a minute
+        </Text>
+      </View>
+    </SafeAreaView>
+  );
+}
