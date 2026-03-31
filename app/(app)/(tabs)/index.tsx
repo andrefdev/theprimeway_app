@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, RefreshControl } from 'react-native';
+import { View, ScrollView, Pressable, RefreshControl, Image } from 'react-native';
 import { Text } from '@/shared/components/ui/text';
 import { Card, CardContent } from '@/shared/components/ui/card';
 import { Icon } from '@/shared/components/ui/icon';
@@ -10,24 +10,30 @@ import { TaskTimerSheet } from '@features/tasks/components/TaskTimerSheet';
 import { TaskFormSheet } from '@features/tasks/components/TaskFormSheet';
 import { HabitCard } from '@features/habits/components/HabitCard';
 import { TransactionFormSheet } from '@features/finances/components/TransactionFormSheet';
+import { PlayerStatusBar } from '@features/gamification/components/PlayerStatusBar';
+import { DailyGoalRing } from '@features/gamification/components/DailyGoalRing';
+import { useGamificationStore } from '@features/gamification/stores/gamificationStore';
 import { useTasks, useUpdateTask } from '@features/tasks/hooks/useTasks';
 import { useHabits, useHabitStats, useLogHabit } from '@features/habits/hooks/useHabits';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { router } from 'expo-router';
 import {
-  CheckSquare, Flame, Timer, Plus, Wallet, FileText, Sparkles, DollarSign,
+  CheckSquare, Flame, Timer, Plus, Wallet, FileText, Sparkles, Bell,
 } from 'lucide-react-native';
+import { useAggregatedNotifications } from '@features/notifications/hooks/useNotifications';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { format } from 'date-fns';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 import type { Task } from '@shared/types/models';
 import type { HabitWithLogs } from '@features/habits/types';
 
 export default function DashboardScreen() {
   const user = useAuthStore((s) => s.user);
+  const { t } = useTranslation('features.dashboard');
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -43,6 +49,9 @@ export default function DashboardScreen() {
   const { data: habitStats } = useHabitStats();
   const updateTask = useUpdateTask();
   const logHabit = useLogHabit();
+  const syncWithBackend = useGamificationStore((s) => s.syncWithBackend);
+  const { data: notificationsData } = useAggregatedNotifications();
+  const notificationCount = notificationsData?.count ?? 0;
 
   const todayTasks = useMemo(() => {
     if (!tasks || !Array.isArray(tasks)) return [];
@@ -58,15 +67,22 @@ export default function DashboardScreen() {
   const s = habitStats as any;
   const completedHabits = s?.totalCompletedToday ?? s?.total_completed_today ?? 0;
   const totalHabits = s?.totalHabits ?? s?.total_habits ?? 0;
+  const bestStreak = (() => {
+    const longestArr = s?.streaks?.longest ?? [];
+    return longestArr[0]?.streakDays ?? longestArr[0]?.streak_days ?? 0;
+  })();
+
+  // Sync gamification data from backend on mount
+  useEffect(() => {
+    syncWithBackend();
+  }, []);
 
   const getGreeting = (): string => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return t('greeting.morning');
+    if (hour < 18) return t('greeting.afternoon');
+    return t('greeting.evening');
   };
-
-  const today = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
@@ -86,24 +102,65 @@ export default function DashboardScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <View className="flex-row items-center justify-between px-4 pb-2 pt-3">
-        <View className="flex-1">
-          <Text className="text-2xl font-bold text-foreground">{getGreeting()}, {user?.name?.split(' ')[0] || 'there'}</Text>
-          <Text className="mt-0.5 text-sm text-muted-foreground">{today}</Text>
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-5 pb-10"
+        showsVerticalScrollIndicator={false}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        {/* Logo + Bell */}
+        <View className="mt-2 flex-row items-center gap-2.5">
+          <Image
+            source={require('../../../assets/images/tpw_logo_full-512x512.png')}
+            className="h-8 w-8 rounded-lg"
+            resizeMode="contain"
+          />
+          <Text className="flex-1 text-base font-bold text-foreground">The Prime Way</Text>
+          <Pressable
+            onPress={() => router.push('/(app)/notifications')}
+            className="relative h-9 w-9 items-center justify-center rounded-full bg-card active:opacity-70"
+          >
+            <Icon as={Bell} size={20} className="text-foreground" />
+            {notificationCount > 0 && (
+              <View className="absolute right-0 top-0 h-4 min-w-[16px] items-center justify-center rounded-full bg-destructive px-0.5">
+                <Text className="text-[9px] font-bold text-white">
+                  {notificationCount > 99 ? '99+' : notificationCount}
+                </Text>
+              </View>
+            )}
+          </Pressable>
         </View>
-      </View>
 
-      <ScrollView className="flex-1" contentContainerClassName="px-4 pb-8" showsVerticalScrollIndicator={false} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+        {/* Player Status — scrollable, not fixed */}
+        <View className="mt-5">
+          <PlayerStatusBar greeting={`${getGreeting()}, ${user?.name?.split(' ')[0] || 'there'}`} />
+        </View>
+
+        {/* Daily Goal */}
+        <View className="mt-6">
+          <DailyGoalRing />
+        </View>
+
+        {/* Quick Actions — bigger icons */}
+        <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mt-8">
+          <View className="flex-row justify-between">
+            <QuickAction icon={Plus} label={t('quickActions.taskShort')} color="primary" onPress={() => setShowTaskForm(true)} />
+            <QuickAction icon={Timer} label={t('quickActions.focusShort')} color="destructive" onPress={() => router.push('/(app)/pomodoro')} />
+            <QuickAction icon={Wallet} label={t('quickActions.expenseShort')} color="success" onPress={() => setShowTransactionForm(true)} />
+            <QuickAction icon={FileText} label={t('quickActions.noteShort')} color="accent" onPress={() => router.push('/(app)/notes/new' as never)} />
+          </View>
+        </Animated.View>
+
         {/* AI Briefing */}
-        <Animated.View entering={FadeInDown.delay(50).duration(400)}>
+        <Animated.View entering={FadeInDown.delay(200).duration(400)} className="mt-8">
           <Pressable onPress={() => router.push('/(app)/ai')}>
-            <Card className="mt-3 border-primary/20">
-              <CardContent className="flex-row items-start gap-3">
-                <IconCircle icon={Sparkles} color="primary" size="sm" />
+            <Card className="border-primary/20">
+              <CardContent className="flex-row items-start gap-3 py-4">
+                <IconCircle icon={Sparkles} color="primary" size="md" />
                 <View className="flex-1">
-                  <Text className="text-sm font-semibold text-foreground">Your Daily Brief</Text>
-                  <Text className="mt-1 text-xs leading-5 text-muted-foreground">
-                    {todayTasks.length} tasks today, {completedHabits}/{totalHabits} habits done.
+                  <Text className="text-base font-semibold text-foreground">{t('dailyBrief')}</Text>
+                  <Text className="mt-1.5 text-sm leading-5 text-muted-foreground">
+                    {t('dailyBriefSummary', { tasks: todayTasks.length, completedHabits, totalHabits })}
                   </Text>
                 </View>
               </CardContent>
@@ -111,31 +168,11 @@ export default function DashboardScreen() {
           </Pressable>
         </Animated.View>
 
-        {/* Quick Stats */}
-        <Animated.View entering={FadeInDown.delay(100).duration(400)} className="mt-4">
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerClassName="gap-3">
-            <MiniStat icon={CheckSquare} color="success" value={`${completedTasks}/${todayTasks.length}`} label="Tasks Done" />
-            <MiniStat icon={Flame} color="warning" value={`${completedHabits}/${totalHabits}`} label="Habits" />
-            <MiniStat icon={Timer} color="primary" value="0m" label="Focus Time" />
-            <MiniStat icon={DollarSign} color="success" value="$0" label="Remaining" />
-          </ScrollView>
-        </Animated.View>
-
-        {/* Quick Actions — open sheets directly */}
-        <Animated.View entering={FadeInDown.delay(150).duration(400)} className="mt-6">
-          <View className="flex-row justify-around px-4">
-            <QuickAction icon={Plus} label="Task" color="primary" onPress={() => setShowTaskForm(true)} />
-            <QuickAction icon={Timer} label="Focus" color="destructive" onPress={() => router.push('/(app)/pomodoro')} />
-            <QuickAction icon={Wallet} label="Expense" color="success" onPress={() => setShowTransactionForm(true)} />
-            <QuickAction icon={FileText} label="Note" color="accent" onPress={() => router.push('/(app)/notes/new' as never)} />
-          </View>
-        </Animated.View>
-
         {/* Today's Tasks */}
-        <Animated.View entering={FadeInDown.delay(200).duration(400)} className="mt-6">
-          <SectionHeader title="Today" actionLabel="See all" onAction={() => router.push('/(app)/(tabs)/tasks/today')} />
+        <Animated.View entering={FadeInDown.delay(250).duration(400)} className="mt-8">
+          <SectionHeader title={t('sections.today')} actionLabel={t('seeAll')} onAction={() => router.push('/(app)/(tabs)/tasks/today')} />
           {todayTasks.length > 0 ? (
-            <View className="mt-3 gap-2">
+            <View className="mt-4 gap-3">
               {todayTasks.map((task) => (
                 <TaskCard
                   key={task.id}
@@ -148,29 +185,29 @@ export default function DashboardScreen() {
               ))}
             </View>
           ) : (
-            <Card className="mt-3">
-              <CardContent className="items-center py-6">
-                <Icon as={CheckSquare} size={32} className="text-muted-foreground/50" />
-                <Text className="mt-2 text-sm text-muted-foreground">No tasks for today</Text>
+            <Card className="mt-4">
+              <CardContent className="items-center py-8">
+                <Icon as={CheckSquare} size={36} className="text-muted-foreground/40" />
+                <Text className="mt-3 text-sm text-muted-foreground">{t('noTasksToday')}</Text>
               </CardContent>
             </Card>
           )}
         </Animated.View>
 
         {/* Habits */}
-        <Animated.View entering={FadeInDown.delay(250).duration(400)} className="mt-6">
-          <SectionHeader title="Habits" actionLabel="See all" onAction={() => router.push('/(app)/(tabs)/habits')} />
+        <Animated.View entering={FadeInDown.delay(300).duration(400)} className="mt-8">
+          <SectionHeader title={t('sections.habits')} actionLabel={t('seeAll')} onAction={() => router.push('/(app)/(tabs)/habits')} />
           {todayHabits.length > 0 ? (
-            <View className="mt-3 gap-2">
+            <View className="mt-4 gap-3">
               {todayHabits.map((habit) => (
                 <HabitCard key={habit.id} habit={habit} onComplete={() => handleCompleteHabit(habit)} onPress={() => router.push('/(app)/(tabs)/habits')} />
               ))}
             </View>
           ) : (
-            <Card className="mt-3">
-              <CardContent className="items-center py-6">
-                <Icon as={Flame} size={32} className="text-muted-foreground/50" />
-                <Text className="mt-2 text-sm text-muted-foreground">No habits for today</Text>
+            <Card className="mt-4">
+              <CardContent className="items-center py-8">
+                <Icon as={Flame} size={36} className="text-muted-foreground/40" />
+                <Text className="mt-3 text-sm text-muted-foreground">{t('noHabitsToday')}</Text>
               </CardContent>
             </Card>
           )}
@@ -186,21 +223,11 @@ export default function DashboardScreen() {
   );
 }
 
-function MiniStat({ icon, color, value, label }: { icon: typeof CheckSquare; color: 'primary' | 'success' | 'warning' | 'destructive'; value: string; label: string }) {
-  return (
-    <View className="min-w-[100px] rounded-xl border border-border bg-card px-3 py-3">
-      <IconCircle icon={icon} color={color} size="sm" />
-      <Text className="mt-2 text-lg font-bold text-foreground">{value}</Text>
-      <Text className="text-2xs text-muted-foreground">{label}</Text>
-    </View>
-  );
-}
-
 function QuickAction({ icon, label, color, onPress }: { icon: typeof Plus; label: string; color: 'primary' | 'destructive' | 'success' | 'accent'; onPress: () => void }) {
   return (
-    <Pressable className="items-center gap-2" onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}>
+    <Pressable className="items-center gap-2.5" onPress={() => { Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); onPress(); }}>
       <IconCircle icon={icon} color={color} size="lg" />
-      <Text className="text-2xs font-medium text-muted-foreground">{label}</Text>
+      <Text className="text-xs font-medium text-muted-foreground">{label}</Text>
     </Pressable>
   );
 }

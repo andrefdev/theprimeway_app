@@ -119,4 +119,13 @@ export const financesService = {
     );
     return data.data;
   },
+
+  // ── Update Transaction ─────────────────────────────────────
+  updateTransaction: async (id: string, data: Partial<Transaction>): Promise<Transaction> => {
+    const { data: res } = await apiClient.patch<{ data: Transaction }>(
+      `${FINANCES.TRANSACTIONS}/${id}`,
+      data,
+    );
+    return res.data;
+  },
 };

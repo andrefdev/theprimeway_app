@@ -53,6 +53,12 @@ export const FINANCES = {
   CALCULATE_INSTALLMENT: '/api/finances/debts/calculate-installment',
   IMPORT_TRANSACTIONS: '/api/finances/transactions/import',
   RECURRING_EXPENSES: '/api/finances/recurring-expenses',
+  INVESTMENTS: '/api/finances/investments',
+  INVESTMENT_BY_ID: (id: string) => `/api/finances/investments/${id}`,
+  INVESTMENTS_SUMMARY: '/api/finances/investments/summary',
+  PENDING_TRANSACTIONS: '/api/finances/transactions/pending',
+  INCOME_ESTIMATES: '/api/finances/income-estimates',
+  NET_WORTH: '/api/finances/stats/net-worth',
 } as const;
 
 // Notes
@@ -99,6 +105,7 @@ export const USER = {
 export const NOTIFICATIONS = {
   REGISTER: '/api/notifications/register',
   PREFERENCES: '/api/notifications/preferences',
+  AGGREGATED: '/api/notifications/aggregated',
 } as const;
 
 // Subscription
@@ -111,4 +118,29 @@ export const SUBSCRIPTION = {
 // KYC
 export const KYC = {
   BASE: '/api/kyc',
+} as const;
+
+// Reading
+export const READING = {
+  SEARCH: '/api/reading/search',
+  WORKS: (key: string) => `/api/reading/works/${key}`,
+  BOOKS: '/api/reading/books',
+  BOOK_BY_ID: (id: string) => `/api/reading/books/${id}`,
+  BOOKS_STATS: '/api/reading/books/stats',
+  GOALS: '/api/reading/goals',
+  GOAL_BY_ID: (id: string) => `/api/reading/goals/${id}`,
+} as const;
+
+// Gamification
+export const GAMIFICATION = {
+  PROFILE: '/api/gamification/profile',
+  PROFILE_SETTINGS: '/api/gamification/profile/settings',
+  XP: '/api/gamification/xp',
+  XP_HISTORY: '/api/gamification/xp/history',
+  XP_DAILY: '/api/gamification/xp/daily',
+  STREAK: '/api/gamification/streak',
+  ACHIEVEMENTS: '/api/gamification/achievements',
+  CHALLENGES: '/api/gamification/challenges',
+  CHALLENGES_PROGRESS: '/api/gamification/challenges/progress',
+  SEED: '/api/gamification/seed',
 } as const;

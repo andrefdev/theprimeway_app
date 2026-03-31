@@ -71,12 +71,12 @@ export default function VisionScreen() {
         showBack
         rightAction={
           <Button
-            variant="ghost"
             size="icon"
             onPress={handleSave}
             disabled={!title.trim() || isSaving}
+            className="rounded-full"
           >
-            <Icon as={Save} size={20} className="text-primary" />
+            <Icon as={Save} size={18} className="text-primary-foreground" />
           </Button>
         }
       />

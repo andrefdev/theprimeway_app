@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, Alert } from 'react-native';
+import { View, ScrollView, Pressable, Alert, Linking, ActivityIndicator } from 'react-native';
 import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { Button } from '@/shared/components/ui/button';
@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { cn } from '@/shared/utils/cn';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useCreateCheckout, useSubscriptionPlans } from '@/features/subscription/hooks/useSubscription';
 
 const FREE_FEATURES = [
   { key: 'unlimitedTasks', included: true },
@@ -29,10 +30,23 @@ const PRO_FEATURES = [
 
 export default function SubscriptionScreen() {
   const { t } = useTranslation('features.subscription');
+  const { data: plans } = useSubscriptionPlans();
+  const { mutateAsync: createCheckout, isPending: isCheckingOut } = useCreateCheckout();
 
   const handleUpgrade = async () => {
-    // TODO: Call subscriptionService.createCheckout() and open URL
-    Alert.alert(t('title'), t('messages.error'));
+    try {
+      // Use the first pro plan's id, or fall back to a default identifier
+      const proPlan = plans?.find((p) => p.name !== 'free') ?? plans?.[0];
+      const planId = proPlan?.id ?? 'pro_monthly';
+      const { url } = await createCheckout(planId);
+      if (url) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert(t('title'), t('messages.error'));
+      }
+    } catch {
+      Alert.alert(t('title'), t('messages.error'));
+    }
   };
 
   return (
@@ -79,7 +93,7 @@ export default function SubscriptionScreen() {
 
               <View className="mt-4 rounded-lg border border-border bg-muted py-2.5">
                 <Text className="text-center text-sm font-medium text-muted-foreground">
-                  Current Plan
+                  {t('currentPlanBadge')}
                 </Text>
               </View>
             </View>
@@ -90,7 +104,7 @@ export default function SubscriptionScreen() {
             <View className="relative overflow-hidden rounded-2xl border-2 border-primary bg-card p-5">
               {/* Most Popular Badge */}
               <View className="absolute -right-8 top-4 rotate-45 bg-primary px-10 py-1">
-                <Text className="text-2xs font-bold text-primary-foreground">POPULAR</Text>
+                <Text className="text-2xs font-bold text-primary-foreground">{t('popular')}</Text>
               </View>
 
               <View className="flex-row items-center gap-2">
@@ -111,13 +125,23 @@ export default function SubscriptionScreen() {
                 ))}
               </View>
 
-              <Button className="mt-5 shadow-lg shadow-primary/20" onPress={handleUpgrade}>
-                <Icon as={Sparkles} size={14} className="text-primary-foreground" />
-                <Text className="text-sm font-bold text-primary-foreground">{t('upgrade')}</Text>
+              <Button
+                className="mt-5 shadow-lg shadow-primary/20"
+                onPress={handleUpgrade}
+                disabled={isCheckingOut}
+              >
+                {isCheckingOut ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <Icon as={Sparkles} size={14} className="text-primary-foreground" />
+                )}
+                <Text className="text-sm font-bold text-primary-foreground">
+                  {t('upgrade')}
+                </Text>
               </Button>
 
               <Pressable className="mt-3 items-center py-1">
-                <Text className="text-xs text-muted-foreground">Start 14-Day Free Trial</Text>
+                <Text className="text-xs text-muted-foreground">{t('freeTrial')}</Text>
               </Pressable>
             </View>
           </Animated.View>
@@ -127,11 +151,11 @@ export default function SubscriptionScreen() {
         <Animated.View entering={FadeInDown.delay(150).duration(300)} className="mt-6 flex-row justify-center gap-6">
           <View className="items-center gap-1">
             <Icon as={Lock} size={14} className="text-muted-foreground" />
-            <Text className="text-2xs text-muted-foreground">Secure</Text>
+            <Text className="text-2xs text-muted-foreground">{t('secure')}</Text>
           </View>
           <View className="items-center gap-1">
             <Icon as={ArrowRight} size={14} className="text-muted-foreground" />
-            <Text className="text-2xs text-muted-foreground">Cancel Anytime</Text>
+            <Text className="text-2xs text-muted-foreground">{t('cancelAnytime')}</Text>
           </View>
         </Animated.View>
       </ScrollView>

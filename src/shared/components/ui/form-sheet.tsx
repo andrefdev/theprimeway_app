@@ -22,7 +22,7 @@ export function FormSheet({
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === 'dark';
   const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => customSnapPoints ?? ['85%'], [customSnapPoints]);
+  const snapPoints = useMemo(() => customSnapPoints ?? ['65%'], [customSnapPoints]);
 
   useEffect(() => {
     if (isOpen) {

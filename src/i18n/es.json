@@ -239,7 +239,10 @@
     "all": "Todas",
     "more": "Mas",
     "calendar": "Calendario",
-    "home": "Inicio"
+    "home": "Inicio",
+    "aiChat": "Chat IA",
+    "reading": "Lectura",
+    "premium": "Premium"
   },
   "features": {
     "dashboard": {
@@ -251,6 +254,14 @@
         "evening": "Buenas noches"
       },
       "seeAll": "Ver todo",
+      "dailyBrief": "Tu Resumen Diario",
+      "dailyBriefSummary": "{{tasks}} tareas hoy, {{completedHabits}}/{{totalHabits}} habitos completados.",
+      "noTasksToday": "No hay tareas para hoy",
+      "noHabitsToday": "No hay habitos para hoy",
+      "sections": {
+        "today": "Hoy",
+        "habits": "Habitos"
+      },
       "quickActions": {
         "title": "Acciones Rapidas",
         "addTask": "Nueva Tarea",
@@ -260,7 +271,11 @@
         "pomodoro": "Pomodoro",
         "addTransaction": "Transaccion",
         "addNote": "Nueva Nota",
-        "aiChat": "Chat IA"
+        "aiChat": "Chat IA",
+        "taskShort": "Tarea",
+        "focusShort": "Foco",
+        "expenseShort": "Gasto",
+        "noteShort": "Nota"
       },
       "stats": {
         "tasks": {
@@ -279,7 +294,11 @@
           "title": "Objetivos Activos",
           "subtitle": "En Progreso"
         },
-        "days": "dias"
+        "days": "dias",
+        "tasksDone": "Tareas Hechas",
+        "habitsLabel": "Habitos",
+        "focusTime": "Tiempo de Foco",
+        "remaining": "Restante"
       },
       "widgets": {
         "tasks": {
@@ -334,6 +353,16 @@
       "title": "Objetivos",
       "newGoal": "Nuevo Objetivo",
       "roadmap": "Hoja de Ruta",
+      "exampleData": {
+        "banner": "Este es un ejemplo para ayudarte a entender la jerarquia. Toca para descartar.",
+        "dismiss": "Descartar ejemplo",
+        "visionTitle": "Vivir una vida equilibrada y plena",
+        "visionNarrative": "En 10 anos quiero estar sano, ser libre financieramente y rodeado de relaciones significativas.",
+        "pillarTitle": "Salud",
+        "outcomeTitle": "Correr un maraton",
+        "outcomeDescription": "Entrenar consistentemente para completar un maraton de 42K en 12 meses.",
+        "focusTitle": "4 entrenamientos por semana"
+      },
       "quarterlyGoals": "Objetivos Trimestrales",
       "journeyView": "Vista de Viaje",
       "primeVision": "Vision Prime",
@@ -469,12 +498,14 @@
       },
       "status": {
         "open": "Pendiente",
-        "completed": "Completada"
+        "completed": "Completada",
+        "done": "Hecha"
       },
       "priority": {
         "low": "Baja",
         "medium": "Media",
-        "high": "Alta"
+        "high": "Alta",
+        "med": "Med"
       },
       "createTask": "Crear Tarea",
       "taskTitleRequired": "El titulo es obligatorio",
@@ -490,7 +521,9 @@
         "priority": "Prioridad",
         "status": "Estado",
         "estimatedTime": "Tiempo estimado",
-        "tags": "Etiquetas"
+        "tags": "Etiquetas",
+        "dueDate": "Fecha Limite",
+        "estimatedDuration": "Duracion Estimada (minutos)"
       },
       "dateLabels": {
         "today": "Hoy",
@@ -555,13 +588,45 @@
         "dueLabel": "Vence",
         "stop": "Detener",
         "start": "Iniciar"
-      }
+      },
+      "addTaskDescription": "Agrega una tarea para empezar tu dia",
+      "loadingFocus": "Cargando tareas prioritarias...",
+      "focusHeader": "{{count}} tarea de alta prioridad para enfocarse",
+      "focusHeaderPlural": "{{count}} tareas de alta prioridad para enfocarse",
+      "allClear": "Todo al dia!",
+      "allClearDescription": "No hay tareas de alta prioridad ahora. Buen trabajo.",
+      "searchPlaceholder": "Buscar tareas...",
+      "clearFilters": "Limpiar filtros",
+      "taskCount": "{{count}} tarea",
+      "taskCountPlural": "{{count}} tareas",
+      "noMatchingTasks": "No hay tareas que coincidan",
+      "noTasksYet": "No hay tareas aun",
+      "noMatchingTasksDescription": "Intenta un termino de busqueda diferente o limpia los filtros",
+      "noTasksYetDescription": "Crea tu primera tarea para empezar a organizar",
+      "loadingWeekly": "Cargando vista semanal...",
+      "allWeek": "Toda la semana",
+      "noTasksThisWeek": "No hay tareas esta semana",
+      "noTasksThisWeekDescription": "Programa tareas para verlas en la vista semanal",
+      "swipe": {
+        "done": "Hecho",
+        "undo": "Deshacer",
+        "delete": "Eliminar"
+      },
+      "placeholders": {
+        "taskTitle": "Que necesitas hacer?",
+        "taskDescription": "Agrega mas detalles...",
+        "tagInput": "Agrega etiqueta y presiona enter"
+      },
+      "completedCount": "{{completed}}/{{total}} completadas",
+      "filterAll": "Todas",
+      "errorLoadingTitle": "No se pudieron cargar las tareas",
+      "errorLoadingDescription": "Verifica tu conexion e intentalo de nuevo"
     },
     "habits": {
       "title": "Habitos",
       "description": "Construye rutinas positivas",
       "newHabit": "Nuevo Habito",
-      "streak": "{days} dias de racha",
+      "streak": "{{days}} dias de racha",
       "habitTracker": "Rastreador de Habitos",
       "habit": "Habito",
       "habitStats": "Estadisticas de Habitos",
@@ -656,7 +721,7 @@
         "basedOnBudgets": "Basado en tu presupuesto mensual restante",
         "addExpense": "Gasto",
         "addIncome": "Ingreso",
-        "budgetAlert": "{category} esta al {percentage}%",
+        "budgetAlert": "{{category}} esta al {{percentage}}%",
         "netWorthTrend": "Tendencia de Patrimonio"
       },
       "monthly": {
@@ -838,7 +903,7 @@
         "recent": "Transacciones Recientes",
         "latestActivity": "Ultima actividad financiera",
         "noTransactions": "No se encontraron transacciones",
-        "allCount": "{count} transacciones",
+        "allCount": "{{count}} transacciones",
         "unbudgeted": "Sin presupuesto",
         "status": {
           "pending": "Pendiente",
@@ -1051,7 +1116,33 @@
           "saveChanges": "Guardar Cambios"
         }
       },
-      "planningDescription": "Planifica tu futuro financiero"
+      "planningDescription": "Planifica tu futuro financiero",
+      "net": "Neto",
+      "expensesShort": "Gastos",
+      "incomeShort": "Ingresos",
+      "activeBudgets": "Presupuestos Activos",
+      "savingsShort": "Ahorros",
+      "recentTransactions": "Transacciones Recientes",
+      "noTransactionsYet": "No hay transacciones aun",
+      "perMonth": "/mes",
+      "targetLabel": "Meta",
+      "ofAmount": "de {amount}",
+      "transactionForm": {
+        "title": "Nueva Transaccion",
+        "type": "Tipo",
+        "income": "Ingreso",
+        "expense": "Gasto",
+        "transfer": "Transferencia",
+        "amount": "Monto",
+        "description": "Descripcion",
+        "descriptionPlaceholder": "Para que fue?",
+        "account": "Cuenta",
+        "notes": "Notas (opcional)",
+        "notesPlaceholder": "Detalles adicionales...",
+        "saving": "Guardando...",
+        "addTransaction": "Agregar Transaccion"
+      },
+      "quickAdd": "Agregar rapido"
     },
     "ai": {
       "title": "Asistente IA",
@@ -1081,12 +1172,20 @@
         "proposalCancelled": "Propuesta cancelada",
         "proposalRejectedSystem": "El usuario rechazo la propuesta. Pregunta si desea modificar algo."
       },
+      "comingSoon": "Chat IA disponible pronto! Conecta tu backend para habilitar esta funcion.",
+      "primeAI": "Prime IA",
+      "askAnything": "Pregunta lo que sea...",
       "suggestions": {
         "vision": "Quiero crear mi vision personal",
         "finances": "Ayudame a organizar mis finanzas",
         "quarterGoals": "Planificar mis objetivos del trimestre",
         "productivity": "Analizar mi productividad",
-        "todayTasks": "Cuales son mis tareas de hoy?"
+        "todayTasks": "Cuales son mis tareas de hoy?",
+        "analyzeFinances": "Analizar mis finanzas",
+        "reviewGoals": "Revisar mis objetivos",
+        "planWeek": "Planificar mi semana",
+        "productivityTips": "Consejos de productividad",
+        "monthlyReport": "Reporte mensual"
       },
       "tools": {
         "getPrimeVisions": {
@@ -1412,7 +1511,7 @@
         "optional": "(Opcional)",
         "iconHint": "Elige un icono",
         "deleteCategory": "Eliminar Categoria",
-        "deleteCategoryConfirm": "Estas seguro de que quieres eliminar la categoria \"{categoryName}\"?",
+        "deleteCategoryConfirm": "Estas seguro de que quieres eliminar la categoria \"{{categoryName}}\"?",
         "deleteCategoryWarning": "Todas las notas en esta categoria quedaran sin categoria.",
         "deletingCategory": "Eliminando...",
         "updateCategory": "Actualizar Categoria",
@@ -1445,7 +1544,7 @@
         "share": "Compartir"
       },
       "bulkActions": {
-        "selectedCount": "{count} seleccionados",
+        "selectedCount": "{{count}} seleccionados",
         "selectAll": "Seleccionar todo",
         "clearSelection": "Limpiar seleccion",
         "changeCategory": "Cambiar categoria",
@@ -1475,8 +1574,14 @@
       "close": "Cerrar",
       "search": "Buscar notas...",
       "noNotes": "No se encontraron notas",
+      "pinned": "Fijada",
+      "errorLoadingTitle": "No se pudieron cargar las notas",
+      "errorLoadingDescription": "Verifica tu conexion e intentalo de nuevo",
       "editor": {
-        "placeholder": "Empieza a escribir..."
+        "placeholder": "Empieza a escribir...",
+        "titlePlaceholder": "Titulo de la nota",
+        "contentPlaceholder": "Empieza a escribir... soporta **negritas**, *cursiva*, # encabezados, - listas, > citas",
+        "tapToWrite": "Toca para empezar a escribir..."
       },
       "tags": "Etiquetas",
       "editDescription": "Edita los detalles de tu nota",
@@ -1544,6 +1649,11 @@
         "perMonth": "/mes",
         "perYear": "/ano"
       },
+      "currentPlanBadge": "Plan Actual",
+      "popular": "POPULAR",
+      "freeTrial": "Inicia Prueba Gratis de 14 Dias",
+      "secure": "Seguro",
+      "cancelAnytime": "Cancela Cuando Quieras",
       "messages": {
         "upgradeSuccess": "Bienvenido a Pro!",
         "restoreSuccess": "Compras restauradas",
@@ -1613,16 +1723,33 @@
         "enable": "Activar Notificaciones",
         "later": "Quiza Despues",
         "goToSettings": "Ir a Configuracion"
+      },
+      "reminders": {
+        "habitReminder": "Recordatorio Diario",
+        "habitReminderDescription": "Recibe un recordatorio para completar este habito",
+        "taskReminder": "Recordatorio de Tarea",
+        "taskReminderDescription": "Recibe una notificacion antes de que venza tu tarea",
+        "setTime": "Establecer hora del recordatorio",
+        "enabled": "Recordatorio activado",
+        "disabled": "Recordatorio desactivado",
+        "at": "a las"
       }
     },
     "onboarding": {
       "buttons": {
         "done": "Finalizar",
         "next": "Siguiente",
+        "back": "Volver",
         "getStarted": "Comenzar",
         "skip": "Saltar"
       },
       "skipConfirmDescription": "Estas seguro de que quieres saltar el tutorial?",
+      "tooltips": {
+        "goals": "Elige las areas de tu vida que mas te importan. Estas se convierten en tus Pilares — la base de todos tus objetivos y habitos.",
+        "habits": "Los habitos son acciones diarias o semanales que se acumulan con el tiempo. Empieza con un habito pequeno y construye desde ahi.",
+        "tasks": "Las tareas son acciones puntuales con fechas limite. Captura lo que necesitas hacer para que nada se te escape.",
+        "finances": "Controla tu dinero entre cuentas, presupuestos y metas de ahorro. Empieza configurando tu moneda y primera cuenta."
+      },
       "steps": {
         "welcome": {
           "title": "Bienvenido a The Prime Way",
@@ -1657,10 +1784,91 @@
           "description": "Activa las notificaciones para no perderte tareas ni habitos."
         }
       },
+      "habitsSetup": {
+        "step": "Paso 2 de 5",
+        "title": "Crea tu primer habito",
+        "description": "Empieza a construir consistencia con un habito diario simple.",
+        "habitName": "Nombre del habito",
+        "habitPlaceholder": "ej., Leer por 30 minutos",
+        "orPickSuggestion": "O elige una sugerencia",
+        "suggestions": {
+          "read": "Leer por 30 minutos",
+          "exercise": "Ejercicio",
+          "meditate": "Meditar",
+          "water": "Tomar 8 vasos de agua",
+          "journal": "Escribir un diario",
+          "noSocial": "Sin redes sociales antes del mediodia"
+        }
+      },
+      "tasksSetup": {
+        "step": "Paso 3 de 5",
+        "title": "Crea tu primera tarea",
+        "description": "Cual es lo mas importante que necesitas hacer hoy?",
+        "taskName": "Nombre de la tarea",
+        "taskPlaceholder": "ej., Planificar mi semana",
+        "orPickSuggestion": "O elige una sugerencia",
+        "suggestions": {
+          "planWeek": "Planificar mi semana",
+          "setupBudget": "Configurar mi presupuesto",
+          "defineGoals": "Definir 3 metas mensuales",
+          "organizeWorkspace": "Organizar mi espacio de trabajo",
+          "reviewPriorities": "Revisar mis prioridades",
+          "scheduleWorkout": "Programar un entrenamiento"
+        }
+      },
+      "financesSetup": {
+        "step": "Paso 4 de 5",
+        "title": "Configura tus finanzas",
+        "description": "Elige tu moneda y crea tu primera cuenta financiera.",
+        "baseCurrency": "Moneda base",
+        "accountName": "Nombre de la cuenta",
+        "accountNamePlaceholder": "ej., Mi Cuenta Principal",
+        "accountType": "Tipo de cuenta",
+        "accountTypes": {
+          "checking": "Cuenta Corriente",
+          "savings": "Cuenta de Ahorros",
+          "creditCard": "Tarjeta de Credito",
+          "cash": "Efectivo",
+          "investment": "Inversion"
+        }
+      },
+      "goalsSetup": {
+        "step": "Paso 1 de 5",
+        "title": "Cuales son tus objetivos?",
+        "description": "Selecciona las areas en las que quieres enfocarte. Siempre puedes cambiar esto despues.",
+        "pillars": {
+          "finances": "Finanzas",
+          "financesDescription": "Presupuesta, ahorra e invierte sabiamente",
+          "career": "Carrera",
+          "careerDescription": "Crece profesionalmente y destaca",
+          "health": "Salud",
+          "healthDescription": "Ejercicio, nutricion y bienestar",
+          "relationships": "Relaciones",
+          "relationshipsDescription": "Fortalece conexiones personales",
+          "mindset": "Mentalidad",
+          "mindsetDescription": "Claridad mental y crecimiento personal",
+          "lifestyle": "Estilo de vida",
+          "lifestyleDescription": "Disena la vida que quieres vivir"
+        }
+      },
+      "welcome": {
+        "tagline": "Tu sistema operativo de vida todo en uno",
+        "subtitle": "Tareas, habitos, objetivos, finanzas y mas\ntodo en un solo lugar.",
+        "minuteText": "Solo tomara un minuto"
+      },
       "completion": {
         "title": "Todo listo!",
-        "description": "Estas listo para usar The Prime Way.",
-        "button": "Empezar"
+        "description": "Tu espacio de trabajo esta listo. Esto es todo\nlo que puedes hacer con The Prime Way:",
+        "button": "Empezar a usar The Prime Way",
+        "settingsHint": "Puedes personalizar todo en Configuracion",
+        "features": {
+          "tasks": "Tareas",
+          "habits": "Habitos",
+          "goals": "Objetivos",
+          "finances": "Finanzas",
+          "notes": "Notas",
+          "calendar": "Calendario"
+        }
       }
     },
     "profile": {
@@ -1701,6 +1909,29 @@
       "logoutSuccess": "Sesion cerrada correctamente",
       "logoutError": "Error al cerrar sesion",
       "version": "Version {version}"
+    },
+    "reading": {
+      "title": "Lectura",
+      "tabs": {
+        "library": "Biblioteca",
+        "explore": "Explorar",
+        "plan": "Plan",
+        "goals": "Metas"
+      },
+      "searchPlaceholder": "Buscar libros...",
+      "stats": {
+        "toRead": "Por Leer",
+        "reading": "Leyendo",
+        "done": "Leidos",
+        "favorites": "Favoritos"
+      },
+      "emptyLibrary": "Tu biblioteca esta vacia",
+      "emptyLibraryDescription": "Busca libros para agregar a tu lista de lectura",
+      "searchBooks": "Buscar Libros"
+    },
+    "more": {
+      "title": "Mas",
+      "version": "The Prime Way v{version}"
     },
     "health": {
       "title": "Salud",

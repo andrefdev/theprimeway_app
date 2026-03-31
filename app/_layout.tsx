@@ -13,6 +13,9 @@ import { QueryProvider } from '@/shared/providers/QueryProvider';
 import { AuthProvider } from '@/shared/providers/AuthProvider';
 import { useAuthStore } from '@/shared/stores/authStore';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
+import { registerForPushNotifications } from '@/features/notifications/pushNotifications';
+import { setupTimerChannel } from '@/features/notifications/timerNotifications';
+import { setupReminderChannel } from '@/features/notifications/reminderNotifications';
 
 export { ErrorBoundary } from 'expo-router';
 
@@ -28,12 +31,19 @@ export default function RootLayout() {
     }
   }, [isLoading]);
 
+  // Register push notifications and notification channels on app start
+  useEffect(() => {
+    setupTimerChannel();
+    setupReminderChannel();
+    registerForPushNotifications();
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <BottomSheetModalProvider>
-        <ThemeProvider value={NAV_THEME[colorScheme ?? 'dark']}>
-          <QueryProvider>
-            <AuthProvider>
+      <ThemeProvider value={NAV_THEME[colorScheme ?? 'dark']}>
+        <QueryProvider>
+          <AuthProvider>
+            <BottomSheetModalProvider>
               <StatusBar style={colorScheme === 'dark' ? 'light' : 'dark'} />
               <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(auth)" />
@@ -41,10 +51,10 @@ export default function RootLayout() {
                 <Stack.Screen name="(app)" />
               </Stack>
               <PortalHost />
-            </AuthProvider>
-          </QueryProvider>
-        </ThemeProvider>
-      </BottomSheetModalProvider>
+            </BottomSheetModalProvider>
+          </AuthProvider>
+        </QueryProvider>
+      </ThemeProvider>
     </GestureHandlerRootView>
   );
 }

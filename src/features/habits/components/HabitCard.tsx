@@ -1,8 +1,20 @@
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/utils/cn';
-import { Flame, Check, RotateCcw } from 'lucide-react-native';
+import { Flame, Check } from 'lucide-react-native';
+import { XpFloater } from '@/features/gamification/components/XpFloater';
+import { XP_VALUES } from '@/features/gamification/model/constants';
+import { useGamificationStore } from '@/features/gamification/stores/gamificationStore';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withSequence,
+  withTiming,
+  withRepeat,
+} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import type { HabitWithLogs } from '../types';
 
@@ -13,6 +25,46 @@ interface HabitCardProps {
   onUncomplete?: () => void;
   onPress?: () => void;
   className?: string;
+}
+
+function getStreakBg(streak: number): string {
+  if (streak >= 30) return 'bg-streak-legendary/15';
+  if (streak >= 7) return 'bg-streak-fire/15';
+  return 'bg-warning/15';
+}
+
+function getStreakText(streak: number): string {
+  if (streak >= 30) return 'text-streak-legendary';
+  if (streak >= 7) return 'text-streak-fire';
+  return 'text-warning';
+}
+
+function AnimatedStreak({ streak }: { streak: number }) {
+  const pulseScale = useSharedValue(1);
+
+  if (streak >= 7) {
+    pulseScale.value = withRepeat(
+      withSequence(
+        withTiming(1.15, { duration: 800 }),
+        withTiming(1, { duration: 800 })
+      ),
+      -1,
+      true
+    );
+  }
+
+  const iconStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulseScale.value }],
+  }));
+
+  return (
+    <View className={cn('flex-row items-center gap-1 rounded-full px-2.5 py-1', getStreakBg(streak))}>
+      <Animated.View style={iconStyle}>
+        <Icon as={Flame} size={12} className={getStreakText(streak)} />
+      </Animated.View>
+      <Text className={cn('text-xs font-bold', getStreakText(streak))}>{streak}d</Text>
+    </View>
+  );
 }
 
 function WeekDots({ habit }: { habit: HabitWithLogs }) {
@@ -29,22 +81,22 @@ function WeekDots({ habit }: { habit: HabitWithLogs }) {
     const isToday = i === 0;
 
     dots.push(
-      <View key={dateStr} className="items-center gap-0.5">
-        <Text className="text-[8px] text-muted-foreground">{dayLabels[6 - i]}</Text>
+      <View key={dateStr} className="items-center gap-1">
+        <Text className="text-[9px] font-medium text-muted-foreground">{dayLabels[6 - i]}</Text>
         <View
           className={cn(
-            'h-3 w-3 items-center justify-center rounded-full',
+            'h-3.5 w-3.5 items-center justify-center rounded-full',
             completed ? 'opacity-100' : 'opacity-20',
             isToday && !completed && 'border border-muted-foreground/40'
           )}
-          style={{ backgroundColor: completed ? (habit.color || '#6454FD') : (habit.color || '#6454FD') }}
+          style={{ backgroundColor: habit.color || '#6454FD' }}
         >
-          {completed && <Icon as={Check} size={7} className="text-white" />}
+          {completed && <Icon as={Check} size={8} className="text-white" />}
         </View>
       </View>
     );
   }
-  return <View className="flex-row items-center gap-1.5">{dots}</View>;
+  return <View className="flex-row items-center gap-2">{dots}</View>;
 }
 
 export function HabitCard({
@@ -61,13 +113,37 @@ export function HabitCard({
   const target = habit.targetFrequency || 1;
   const isCompleted = completedToday >= target;
 
+  const [showXp, setShowXp] = useState(false);
+  const addXp = useGamificationStore((s) => s.addXp);
+  const awardXpToBackend = useGamificationStore((s) => s.awardXpToBackend);
+  const buttonScale = useSharedValue(1);
+
+  const buttonAnimStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: buttonScale.value }],
+  }));
+
   const handleToggle = async () => {
     if (isCompleted) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
       onUncomplete?.();
     } else {
+      buttonScale.value = withSequence(
+        withTiming(0.85, { duration: 80 }),
+        withSpring(1.15, { damping: 6, stiffness: 300 }),
+        withSpring(1, { damping: 10 })
+      );
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       onComplete();
+      addXp({ type: 'habit', amount: XP_VALUES.habit });
+      setShowXp(true);
+      // Sync with backend (fire & forget)
+      awardXpToBackend({
+        source: 'habit',
+        sourceId: habit.id,
+        amount: XP_VALUES.habit,
+        earnedDate: today,
+        metadata: { habitName: habit.name },
+      });
     }
   };
 
@@ -75,72 +151,61 @@ export function HabitCard({
     <Pressable
       onPress={onPress}
       className={cn(
-        'flex-row items-center overflow-hidden rounded-xl border border-border bg-card',
+        'flex-row items-center gap-4 rounded-2xl border border-border bg-card px-4 py-4',
         className
       )}
     >
-      {/* Color bar */}
-      <View
-        className="w-1 self-stretch rounded-l-xl"
-        style={{ backgroundColor: habit.color || '#6454FD' }}
-      />
+      {/* Toggle button — bigger, uses habit color */}
+      <View className="relative">
+        <XpFloater amount={XP_VALUES.habit} visible={showXp} onComplete={() => setShowXp(false)} />
+        <Animated.View style={buttonAnimStyle}>
+          <Pressable
+            onPress={handleToggle}
+            className={cn(
+              'h-12 w-12 items-center justify-center rounded-full border-2',
+              isCompleted ? 'border-transparent' : 'border-muted-foreground/20'
+            )}
+            style={isCompleted ? { backgroundColor: habit.color || '#6454FD' } : undefined}
+            hitSlop={8}
+          >
+            {isCompleted ? (
+              <Icon as={Check} size={22} className="text-white" />
+            ) : (
+              <View
+                className="h-5 w-5 rounded-full"
+                style={{ backgroundColor: (habit.color || '#6454FD') + '30' }}
+              />
+            )}
+          </Pressable>
+        </Animated.View>
+      </View>
 
       {/* Content */}
-      <View className="flex-1 gap-2 px-3 py-3">
+      <View className="flex-1 gap-2.5">
         {/* Name + Streak */}
-        <View className="flex-row items-center justify-between">
+        <View className="flex-row items-center gap-2">
           <Text
             className={cn(
-              'flex-1 text-sm font-semibold text-foreground',
+              'flex-1 text-base font-semibold text-foreground',
               isCompleted && 'text-muted-foreground'
             )}
             numberOfLines={1}
           >
             {habit.name}
           </Text>
-
-          {currentStreak > 0 && (
-            <View className="ml-2 flex-row items-center gap-0.5 rounded-full bg-warning/15 px-2 py-0.5">
-              <Icon as={Flame} size={10} className="text-warning" />
-              <Text className="text-2xs font-bold text-warning">{currentStreak}d</Text>
-            </View>
-          )}
+          {currentStreak > 0 && <AnimatedStreak streak={currentStreak} />}
         </View>
 
-        {/* Category + Week dots */}
+        {/* Week dots + Progress */}
         <View className="flex-row items-center justify-between">
-          {habit.category && (
-            <Text className="text-2xs text-muted-foreground">{habit.category}</Text>
-          )}
           <WeekDots habit={habit} />
+          {target > 1 && (
+            <Text className="text-xs text-muted-foreground">
+              {completedToday}/{target}
+            </Text>
+          )}
         </View>
-
-        {/* Progress text */}
-        {target > 1 && (
-          <Text className="text-2xs text-muted-foreground">
-            {completedToday}/{target} times today
-          </Text>
-        )}
       </View>
-
-      {/* Toggle button */}
-      <Pressable
-        onPress={handleToggle}
-        className={cn(
-          'mx-3 h-10 w-10 items-center justify-center rounded-full border-2',
-          isCompleted
-            ? 'border-transparent'
-            : 'border-muted-foreground/30'
-        )}
-        style={isCompleted ? { backgroundColor: habit.color || '#6454FD' } : undefined}
-        hitSlop={8}
-      >
-        {isCompleted ? (
-          <Icon as={Check} size={18} className="text-white" />
-        ) : (
-          <View className="h-4 w-4 rounded-full" style={{ backgroundColor: (habit.color || '#6454FD') + '30' }} />
-        )}
-      </Pressable>
     </Pressable>
   );
 }

@@ -6,8 +6,11 @@ import { Text } from '@/shared/components/ui/text';
 import { Button } from '@/shared/components/ui/button';
 import { Icon } from '@/shared/components/ui/icon';
 import { ChevronRight } from 'lucide-react-native';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
 export default function WelcomeScreen() {
+  const { t } = useTranslation('features.onboarding');
+
   return (
     <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 items-center justify-center px-8">
@@ -27,10 +30,10 @@ export default function WelcomeScreen() {
 
         {/* Tagline */}
         <Text className="mb-2 text-center text-lg text-muted-foreground">
-          Your all-in-one life operating system
+          {t('welcome.tagline')}
         </Text>
         <Text className="text-center text-base text-muted-foreground/70">
-          Tasks, habits, goals, finances, and more{'\n'}all in one place.
+          {t('welcome.subtitle')}
         </Text>
       </View>
 
@@ -42,13 +45,13 @@ export default function WelcomeScreen() {
           onPress={() => router.push('/(onboarding)/goals')}
         >
           <Text className="text-base font-semibold text-primary-foreground">
-            Get Started
+            {t('buttons.getStarted')}
           </Text>
           <Icon as={ChevronRight} size={20} className="text-primary-foreground" />
         </Button>
 
         <Text className="mt-4 text-center text-sm text-muted-foreground">
-          This will only take a minute
+          {t('welcome.minuteText')}
         </Text>
       </View>
     </SafeAreaView>

@@ -9,7 +9,7 @@ interface ApiListResponse<T> {
 }
 
 export const notesService = {
-  getNotes: async (params?: { search?: string; categoryId?: string }): Promise<Note[]> => {
+  getNotes: async (params?: { search?: string; categoryId?: string; isArchived?: boolean }): Promise<Note[]> => {
     const { data: response } = await apiClient.get<ApiListResponse<Note>>(NOTES.BASE, { params });
     return response.data ?? response as unknown as Note[];
   },

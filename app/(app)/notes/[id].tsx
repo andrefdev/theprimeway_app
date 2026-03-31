@@ -9,11 +9,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import Markdown from 'react-native-markdown-display';
 import { useColorScheme } from 'nativewind';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
 export default function NoteDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const isNew = id === 'new';
   const { colorScheme } = useColorScheme();
+  const { t } = useTranslation('features.notes');
 
   const { data: note, isLoading } = useNote(isNew ? '' : id);
   const updateNote = useUpdateNote();
@@ -22,7 +24,7 @@ export default function NoteDetailScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [noteId, setNoteId] = useState<string | null>(isNew ? null : id);
-  const [isEditing, setIsEditing] = useState(isNew);
+  const [isEditing, setIsEditing] = useState(true);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
   const contentRef = useRef<TextInput>(null);
 
@@ -107,7 +109,7 @@ export default function NoteDetailScreen() {
         {/* Title */}
         <TextInput
           className="mb-4 text-2xl font-bold text-foreground"
-          placeholder="Note title"
+          placeholder={t('editor.titlePlaceholder')}
           placeholderTextColor="hsl(210, 10%, 55%)"
           value={title}
           onChangeText={handleTitleChange}
@@ -119,7 +121,7 @@ export default function NoteDetailScreen() {
           <TextInput
             ref={contentRef}
             className="min-h-[400px] text-[15px] leading-6 text-foreground"
-            placeholder="Start writing... supports **bold**, *italic*, # headings, - lists, > quotes"
+            placeholder={t('editor.contentPlaceholder')}
             placeholderTextColor="hsl(210, 10%, 55%)"
             value={content}
             onChangeText={handleContentChange}
@@ -139,7 +141,7 @@ export default function NoteDetailScreen() {
               <Markdown style={mdStyles}>{content}</Markdown>
             ) : (
               <Text className="min-h-[200px] text-sm text-muted-foreground">
-                Tap to start writing...
+                {t('editor.tapToWrite')}
               </Text>
             )}
           </Pressable>

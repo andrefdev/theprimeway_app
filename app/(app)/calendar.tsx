@@ -2,10 +2,10 @@ import { View, Pressable, ScrollView } from 'react-native';
 import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Header } from '@/shared/components/layout/Header';
 import { PillTabs } from '@/shared/components/ui/pill-tabs';
 import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { PageHeader } from '@features/personalization/components/PageHeader';
 import { useState } from 'react';
 import { format, addMonths, subMonths, startOfMonth, getDaysInMonth, getDay } from 'date-fns';
 import { cn } from '@/shared/utils/cn';
@@ -44,7 +44,7 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
-      <Header title={t('title')} showBack />
+      <PageHeader sectionId="calendar" title={t('title')} />
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Month Navigation */}

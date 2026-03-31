@@ -5,12 +5,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { IconCircle } from '@/shared/components/ui/icon-circle';
-import { Progress } from '@/shared/components/ui/progress';
 import { Card, CardContent } from '@/shared/components/ui/card';
-import { Header } from '@/shared/components/layout/Header';
 import { LoadingOverlay } from '@/shared/components/feedback/LoadingOverlay';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
-import { Flame, Plus, TrendingUp, Trophy } from 'lucide-react-native';
+import { ProgressRing } from '@/features/gamification/components/ProgressRing';
+import { Flame, Plus, TrendingUp, Trophy, Check } from 'lucide-react-native';
+import { PageHeader } from '@features/personalization/components/PageHeader';
 import { HabitCard } from '@/features/habits/components/HabitCard';
 import { HabitForm } from '@/features/habits/components/HabitForm';
 import { HabitFormSheet } from '@/features/habits/components/HabitFormSheet';
@@ -157,70 +157,60 @@ export default function HabitsScreen() {
 
   return (
     <SafeAreaView edges={['top']} className="flex-1 bg-background">
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 pb-1 pt-3">
-        <View>
-          <Text className="text-2xl font-bold text-foreground">{t('title')}</Text>
-          <Text className="mt-0.5 text-xs text-muted-foreground">{todayFormatted}</Text>
-        </View>
-        <Pressable
-          onPress={() => setShowForm(true)}
-          className="h-9 w-9 items-center justify-center rounded-full bg-primary active:bg-primary-hover"
-          hitSlop={8}
-        >
-          <Icon as={Plus} size={18} className="text-primary-foreground" />
-        </Pressable>
-      </View>
+      <PageHeader
+        sectionId="habits"
+        title={t('title')}
+        actions={
+          <Pressable
+            onPress={() => setShowForm(true)}
+            className="h-9 w-9 items-center justify-center rounded-full bg-primary active:bg-primary-hover"
+            hitSlop={8}
+          >
+            <Icon as={Plus} size={18} className="text-primary-foreground" />
+          </Pressable>
+        }
+      />
 
-      {/* Streak Banner */}
-      {bestStreak >= 3 && (
+      {/* Today's Progress Ring + Stats */}
+      {totalToday > 0 && (
         <Animated.View entering={FadeInDown.duration(300)} className="mx-4 mt-3">
-          <Card className="border-warning/20 bg-card">
-            <CardContent className="flex-row items-center gap-3">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-warning/15">
-                <Icon as={Flame} size={20} className="text-warning" />
+          <Card className="border-border">
+            <CardContent className="flex-row items-center gap-4">
+              {/* Progress Ring */}
+              <View className="relative items-center justify-center" style={{ width: 80, height: 80 }}>
+                <ProgressRing progress={progressPercent / 100} size={80} strokeWidth={6} />
+                <View className="absolute items-center">
+                  {progressPercent >= 100 ? (
+                    <Icon as={Check} size={20} className="text-primary" />
+                  ) : (
+                    <Text className="text-lg font-extrabold text-foreground">{progressPercent}%</Text>
+                  )}
+                </View>
               </View>
-              <View className="flex-1">
-                <Text className="text-sm font-bold text-foreground">
-                  {bestStreak} Day Streak!
-                </Text>
-                <Text className="text-2xs text-muted-foreground">
-                  Your best this month. Keep going!
-                </Text>
+
+              {/* Stats */}
+              <View className="flex-1 gap-2">
+                <View>
+                  <Text className="text-sm font-bold text-foreground">
+                    Today&apos;s Habits
+                  </Text>
+                  <Text className="text-xs text-muted-foreground">
+                    {completedToday} of {totalToday} completed
+                  </Text>
+                </View>
+                <View className="flex-row gap-3">
+                  <View className="flex-row items-center gap-1">
+                    <Icon as={TrendingUp} size={12} className="text-success" />
+                    <Text className="text-2xs font-semibold text-foreground">{s?.completionRate ?? s?.completion_rate ?? 0}%</Text>
+                  </View>
+                  <View className="flex-row items-center gap-1">
+                    <Icon as={Flame} size={12} className="text-warning" />
+                    <Text className="text-2xs font-semibold text-foreground">{bestStreak}d best</Text>
+                  </View>
+                </View>
               </View>
             </CardContent>
           </Card>
-        </Animated.View>
-      )}
-
-      {/* Today's Progress */}
-      {totalToday > 0 && (
-        <Animated.View entering={FadeInDown.delay(100).duration(300)} className="mx-4 mt-4">
-          <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-medium text-foreground">
-              Today&apos;s Habits
-            </Text>
-            <Text className="text-sm font-bold text-primary">
-              {completedToday}/{totalToday}
-            </Text>
-          </View>
-          <Progress value={progressPercent} className="mt-2 h-2" indicatorClassName="bg-primary" />
-        </Animated.View>
-      )}
-
-      {/* Stats Row */}
-      {stats && totalToday > 0 && (
-        <Animated.View entering={FadeInDown.delay(150).duration(300)} className="mx-4 mt-4 flex-row gap-3">
-          <View className="flex-1 rounded-xl border border-border bg-card p-3">
-            <IconCircle icon={TrendingUp} color="success" size="sm" />
-            <Text className="mt-2 text-lg font-bold text-foreground">{s?.completionRate ?? s?.completion_rate ?? 0}%</Text>
-            <Text className="text-2xs text-muted-foreground">Completion Rate</Text>
-          </View>
-          <View className="flex-1 rounded-xl border border-border bg-card p-3">
-            <IconCircle icon={Trophy} color="warning" size="sm" />
-            <Text className="mt-2 text-lg font-bold text-foreground">{bestStreak}d</Text>
-            <Text className="text-2xs text-muted-foreground">Best Streak</Text>
-          </View>
         </Animated.View>
       )}
 

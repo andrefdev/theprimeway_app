@@ -291,6 +291,44 @@ export interface RecurringExpense {
   notes?: string;
 }
 
+export type InvestmentType =
+  | 'stocks'
+  | 'bonds'
+  | 'etf'
+  | 'crypto'
+  | 'real_estate'
+  | 'mutual_fund'
+  | 'other';
+
+export interface Investment {
+  id: string;
+  name: string;
+  ticker?: string;
+  investmentType: InvestmentType;
+  platform?: string;
+  currency: string;
+  units?: number;
+  purchasePrice?: number;
+  currentPrice?: number;
+  totalInvested: number;
+  currentValue: number;
+  unrealizedGain?: number;
+  unrealizedGainPercent?: number;
+  purchaseDate?: string;
+  notes?: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface InvestmentSummary {
+  totalInvested: number;
+  currentValue: number;
+  totalGain: number;
+  totalGainPercent: number;
+  byType: Record<string, { invested: number; currentValue: number }>;
+}
+
 // ============================================================
 // NOTAS
 // ============================================================

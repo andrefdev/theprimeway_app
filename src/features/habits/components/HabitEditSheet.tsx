@@ -4,10 +4,12 @@ import { FormSheet } from '@/shared/components/ui/form-sheet';
 import { Text } from '@/shared/components/ui/text';
 import { Button } from '@/shared/components/ui/button';
 import { Icon } from '@/shared/components/ui/icon';
-import { Trash2 } from 'lucide-react-native';
+import { Trash2, Layers, X } from 'lucide-react-native';
 import { useUpdateHabit, useDeleteHabit } from '../hooks/useHabits';
 import { cn } from '@/shared/utils/cn';
 import type { HabitWithLogs } from '../types';
+import type { PrimePillar } from '@shared/types/models';
+import { PillarPickerSheet } from '@features/goals/components/PillarPickerSheet';
 
 const CATEGORIES = [
   { key: 'health', label: 'Health', emoji: '💪' },
@@ -35,12 +37,15 @@ export function HabitEditSheet({ habit, isOpen, onClose }: HabitEditSheetProps) 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('health');
   const [color, setColor] = useState('#280FFB');
+  const [linkedPillar, setLinkedPillar] = useState<PrimePillar | null>(null);
+  const [showPillarPicker, setShowPillarPicker] = useState(false);
 
   useEffect(() => {
     if (habit) {
       setName(habit.name);
       setCategory(habit.category ?? 'health');
       setColor(habit.color ?? '#280FFB');
+      setLinkedPillar(null);
     }
   }, [habit]);
 
@@ -49,7 +54,12 @@ export function HabitEditSheet({ habit, isOpen, onClose }: HabitEditSheetProps) 
     try {
       await updateHabit.mutateAsync({
         id: habit.id,
-        data: { name: name.trim(), category, color },
+        data: {
+          name: name.trim(),
+          category,
+          color,
+          ...(linkedPillar ? { pillar_id: linkedPillar.id } : {}),
+        },
       });
       onClose();
     } catch {
@@ -115,6 +125,31 @@ export function HabitEditSheet({ habit, isOpen, onClose }: HabitEditSheetProps) 
         </View>
       </View>
 
+      {/* Link to Pillar */}
+      <View>
+        <Text className="mb-2 text-xs font-medium text-muted-foreground">Link to Pillar</Text>
+        <Pressable
+          onPress={() => setShowPillarPicker(true)}
+          className="flex-row items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 active:opacity-70"
+        >
+          <Icon as={Layers} size={16} className="text-muted-foreground" />
+          <Text className="flex-1 text-sm text-foreground" numberOfLines={1}>
+            {linkedPillar ? linkedPillar.title : 'Link a pillar (optional)'}
+          </Text>
+          {linkedPillar ? (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                setLinkedPillar(null);
+              }}
+              hitSlop={8}
+            >
+              <Icon as={X} size={14} className="text-muted-foreground" />
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </View>
+
       <Button className="h-12 rounded-xl" onPress={handleUpdate} disabled={updateHabit.isPending || !name.trim()}>
         {updateHabit.isPending ? (
           <ActivityIndicator size="small" color="white" />
@@ -123,10 +158,17 @@ export function HabitEditSheet({ habit, isOpen, onClose }: HabitEditSheetProps) 
         )}
       </Button>
 
-      <Pressable onPress={handleDelete} className="flex-row items-center justify-center gap-2 py-2">
+      <Button variant="ghost" onPress={handleDelete} className="h-11">
         <Icon as={Trash2} size={16} className="text-destructive" />
         <Text className="text-sm font-medium text-destructive">Delete Habit</Text>
-      </Pressable>
+      </Button>
+
+      <PillarPickerSheet
+        isOpen={showPillarPicker}
+        onClose={() => setShowPillarPicker(false)}
+        selectedPillarId={linkedPillar?.id}
+        onSelect={(pillar) => setLinkedPillar(pillar)}
+      />
     </FormSheet>
   );
 }

@@ -12,24 +12,38 @@ import {
   StickyNote,
   Calendar,
   Sparkles,
+  ChevronLeft,
 } from 'lucide-react-native';
+import type { LucideIcon } from 'lucide-react-native';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
-const FEATURES = [
-  { icon: CheckSquare, label: 'Tasks', color: 'text-blue-400' },
-  { icon: Repeat2, label: 'Habits', color: 'text-violet-400' },
-  { icon: Target, label: 'Goals', color: 'text-amber-400' },
-  { icon: Wallet, label: 'Finances', color: 'text-emerald-400' },
-  { icon: StickyNote, label: 'Notes', color: 'text-cyan-400' },
-  { icon: Calendar, label: 'Calendar', color: 'text-rose-400' },
+const FEATURES: { icon: LucideIcon; key: string; color: string }[] = [
+  { icon: CheckSquare, key: 'tasks', color: 'text-blue-400' },
+  { icon: Repeat2, key: 'habits', color: 'text-violet-400' },
+  { icon: Target, key: 'goals', color: 'text-amber-400' },
+  { icon: Wallet, key: 'finances', color: 'text-emerald-400' },
+  { icon: StickyNote, key: 'notes', color: 'text-cyan-400' },
+  { icon: Calendar, key: 'calendar', color: 'text-rose-400' },
 ];
 
 export default function NotesScreen() {
+  const { t } = useTranslation('features.onboarding.completion');
+  const { t: tOnboarding } = useTranslation('features.onboarding');
+
   const handleFinish = () => {
     router.replace('/(app)/(tabs)');
   };
 
   return (
     <SafeAreaView className="flex-1 bg-background">
+      {/* Back button */}
+      <View className="px-6 pt-4">
+        <Button variant="ghost" size="sm" onPress={() => router.back()}>
+          <Icon as={ChevronLeft} size={20} className="text-muted-foreground" />
+          <Text className="text-sm text-muted-foreground">{tOnboarding('buttons.back')}</Text>
+        </Button>
+      </View>
+
       <View className="flex-1 items-center justify-center px-8">
         {/* Success Icon */}
         <View className="mb-8 h-20 w-20 items-center justify-center rounded-3xl bg-emerald-400/15">
@@ -38,22 +52,22 @@ export default function NotesScreen() {
 
         {/* Title */}
         <Text className="mb-3 text-center text-3xl font-bold text-foreground">
-          You're all set!
+          {t('title')}
         </Text>
         <Text className="mb-10 text-center text-base leading-6 text-muted-foreground">
-          Your workspace is ready. Here's everything{'\n'}you can do with The Prime Way:
+          {t('description')}
         </Text>
 
         {/* Feature Grid */}
         <View className="w-full flex-row flex-wrap justify-center gap-4">
           {FEATURES.map((feature) => (
             <View
-              key={feature.label}
+              key={feature.key}
               className="w-[28%] items-center gap-2 rounded-2xl bg-muted/50 py-4"
             >
               <Icon as={feature.icon} size={24} className={feature.color} />
               <Text className="text-xs font-medium text-muted-foreground">
-                {feature.label}
+                {t(`features.${feature.key}`)}
               </Text>
             </View>
           ))}
@@ -68,12 +82,12 @@ export default function NotesScreen() {
           onPress={handleFinish}
         >
           <Text className="text-base font-semibold text-primary-foreground">
-            Start Using The Prime Way
+            {t('button')}
           </Text>
         </Button>
 
         <Text className="mt-4 text-center text-xs text-muted-foreground">
-          You can customize everything in Settings
+          {t('settingsHint')}
         </Text>
       </View>
     </SafeAreaView>

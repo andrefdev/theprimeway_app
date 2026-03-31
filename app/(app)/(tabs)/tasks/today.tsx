@@ -44,7 +44,7 @@ export default function TodayScreen() {
   if (isLoading) return <LoadingOverlay message={t('loading')} />;
 
   if (isError) {
-    return <EmptyState icon={AlertTriangle} title="Could not load tasks" description="Check your connection and try again" actionLabel="Retry" onAction={() => refetch()} />;
+    return <EmptyState icon={AlertTriangle} title={t('errorLoadingTitle')} description={t('errorLoadingDescription')} actionLabel={t('actions.start')} onAction={() => refetch()} />;
   }
 
   return (
@@ -52,7 +52,7 @@ export default function TodayScreen() {
       {total > 0 && (
         <Animated.View entering={FadeInDown.duration(300)} className="px-4 py-3">
           <View className="flex-row items-center justify-between">
-            <Text className="text-sm font-medium text-foreground">{completedCount}/{total} completed</Text>
+            <Text className="text-sm font-medium text-foreground">{t('completedCount', { completed: completedCount, total })}</Text>
             <Text className="text-sm font-bold text-primary">{progressPercent}%</Text>
           </View>
           <Progress value={progressPercent} className="mt-2 h-2" indicatorClassName="bg-primary" />

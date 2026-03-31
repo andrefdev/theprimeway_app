@@ -6,7 +6,8 @@ import { Text } from '@/shared/components/ui/text';
 import { Button } from '@/shared/components/ui/button';
 import { Icon } from '@/shared/components/ui/icon';
 import { cn } from '@/shared/utils/cn';
-import { ChevronRight, Wallet, Check } from 'lucide-react-native';
+import { ChevronRight, ChevronLeft, Wallet, Check, Info } from 'lucide-react-native';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
 type Currency = {
   code: string;
@@ -27,37 +28,66 @@ const CURRENCIES: Currency[] = [
   { code: 'CAD', symbol: 'CA$', name: 'Canadian Dollar' },
 ];
 
-const ACCOUNT_TYPES = [
-  'Checking Account',
-  'Savings Account',
-  'Credit Card',
-  'Cash',
-  'Investment',
-];
+const ACCOUNT_TYPE_KEYS = ['checking', 'savings', 'creditCard', 'cash', 'investment'] as const;
+
+const TOTAL_STEPS = 5;
+const CURRENT_STEP = 4;
 
 export default function FinancesScreen() {
+  const { t } = useTranslation('features.onboarding.financesSetup');
+  const { t: tOnboarding } = useTranslation('features.onboarding');
+  const accountTypes = ACCOUNT_TYPE_KEYS.map((key) => ({ key, label: t(`accountTypes.${key}`) }));
   const [selectedCurrency, setSelectedCurrency] = useState('USD');
   const [accountName, setAccountName] = useState('');
   const [selectedAccountType, setSelectedAccountType] = useState('');
+  const [showTooltip, setShowTooltip] = useState(true);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
-      {/* Header */}
-      <View className="px-6 pb-2 pt-6">
-        <Text className="text-sm font-medium uppercase tracking-widest text-muted-foreground">
-          Step 4 of 5
-        </Text>
-        <Text className="mt-2 text-3xl font-bold text-foreground">
-          Set up your finances
+      {/* Header with Back button */}
+      <View className="px-6 pb-2 pt-4">
+        <View className="mb-2 flex-row items-center justify-between">
+          <Button variant="ghost" size="sm" onPress={() => router.back()}>
+            <Icon as={ChevronLeft} size={20} className="text-muted-foreground" />
+            <Text className="text-sm text-muted-foreground">{tOnboarding('buttons.back')}</Text>
+          </Button>
+          <Text className="text-sm font-medium text-muted-foreground">
+            {t('step')}
+          </Text>
+        </View>
+
+        {/* Progress bar */}
+        <View className="mb-4 h-1.5 w-full rounded-full bg-muted">
+          <View
+            className="h-1.5 rounded-full bg-primary"
+            style={{ width: `${(CURRENT_STEP / TOTAL_STEPS) * 100}%` }}
+          />
+        </View>
+
+        <Text className="text-3xl font-bold text-foreground">
+          {t('title')}
         </Text>
         <Text className="mt-2 text-base text-muted-foreground">
-          Choose your currency and create your first financial account.
+          {t('description')}
         </Text>
       </View>
 
+      {/* Tooltip / Coach mark */}
+      {showTooltip && (
+        <Pressable
+          onPress={() => setShowTooltip(false)}
+          className="mx-6 mb-2 flex-row items-start gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3"
+        >
+          <Icon as={Info} size={18} className="mt-0.5 text-primary" />
+          <Text className="flex-1 text-sm leading-5 text-foreground/80">
+            {tOnboarding('tooltips.finances')}
+          </Text>
+        </Pressable>
+      )}
+
       <ScrollView
         className="flex-1 px-6"
-        contentContainerClassName="gap-6 pb-6 pt-4"
+        contentContainerClassName="gap-6 pb-6 pt-2"
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
@@ -71,7 +101,7 @@ export default function FinancesScreen() {
         {/* Currency Selection */}
         <View>
           <Text className="mb-3 text-sm font-medium text-foreground">
-            Base currency
+            {t('baseCurrency')}
           </Text>
           <View className="flex-row flex-wrap gap-2">
             {CURRENCIES.map((currency) => (
@@ -106,12 +136,12 @@ export default function FinancesScreen() {
         {/* Account Name Input */}
         <View>
           <Text className="mb-2 text-sm font-medium text-foreground">
-            Account name
+            {t('accountName')}
           </Text>
           <TextInput
             value={accountName}
             onChangeText={setAccountName}
-            placeholder="e.g., My Main Account"
+            placeholder={t('accountNamePlaceholder')}
             placeholderTextColor="hsl(0 0% 45%)"
             className="rounded-xl border border-border bg-muted/50 px-4 py-3.5 text-base text-foreground"
           />
@@ -120,28 +150,28 @@ export default function FinancesScreen() {
         {/* Account Type */}
         <View>
           <Text className="mb-3 text-sm font-medium text-foreground">
-            Account type
+            {t('accountType')}
           </Text>
           <View className="gap-2">
-            {ACCOUNT_TYPES.map((type) => (
+            {accountTypes.map(({ key, label }) => (
               <Pressable
-                key={type}
-                onPress={() => setSelectedAccountType(type)}
+                key={key}
+                onPress={() => setSelectedAccountType(key)}
                 className={cn(
                   'flex-row items-center justify-between rounded-xl border border-border px-4 py-3.5',
-                  selectedAccountType === type &&
+                  selectedAccountType === key &&
                     'border-emerald-400/40 bg-emerald-400/10'
                 )}
               >
                 <Text
                   className={cn(
                     'text-base text-muted-foreground',
-                    selectedAccountType === type && 'text-foreground'
+                    selectedAccountType === key && 'text-foreground'
                   )}
                 >
-                  {type}
+                  {label}
                 </Text>
-                {selectedAccountType === type && (
+                {selectedAccountType === key && (
                   <Icon as={Check} size={18} className="text-emerald-400" />
                 )}
               </Pressable>
@@ -156,7 +186,7 @@ export default function FinancesScreen() {
           variant="ghost"
           onPress={() => router.push('/(onboarding)/notes')}
         >
-          <Text className="text-sm text-muted-foreground">Skip</Text>
+          <Text className="text-sm text-muted-foreground">{tOnboarding('buttons.skip')}</Text>
         </Button>
 
         <Button
@@ -166,7 +196,7 @@ export default function FinancesScreen() {
           className="min-w-[140px]"
         >
           <Text className="text-base font-semibold text-primary-foreground">
-            Next
+            {tOnboarding('buttons.next')}
           </Text>
           <Icon as={ChevronRight} size={20} className="text-primary-foreground" />
         </Button>

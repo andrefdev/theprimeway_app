@@ -5,7 +5,7 @@ import { Text } from '@/shared/components/ui/text';
 import { LoginForm } from '@features/auth/components/LoginForm';
 import { SocialButton } from '@features/auth/components/SocialButton';
 import { useAuth } from '@features/auth/hooks/useAuth';
-import { useGoogleAuth, useAppleAuth } from '@features/auth/hooks/useOAuth';
+import { useGoogleAuth, useAppleAuth, useGitHubAuth } from '@features/auth/hooks/useOAuth';
 import { useState } from 'react';
 import type { LoginFormData } from '@features/auth/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,6 +17,7 @@ export default function LoginScreen() {
   const { login } = useAuth();
   const googleAuth = useGoogleAuth();
   const appleAuth = useAppleAuth();
+  const githubAuth = useGitHubAuth();
   const [isLoading, setIsLoading] = useState(false);
   const { t } = useTranslation('auth.login');
   const { t: tCommon } = useTranslation('common');
@@ -42,6 +43,11 @@ export default function LoginScreen() {
 
   const handleAppleLogin = async () => {
     const success = await appleAuth.signIn();
+    if (success) router.replace('/(app)/(tabs)');
+  };
+
+  const handleGitHubLogin = async () => {
+    const success = await githubAuth.signIn();
     if (success) router.replace('/(app)/(tabs)');
   };
 
@@ -91,6 +97,11 @@ export default function LoginScreen() {
               isLoading={appleAuth.isLoading}
             />
           )}
+          <SocialButton
+            provider="github"
+            onPress={handleGitHubLogin}
+            isLoading={githubAuth.isLoading}
+          />
         </View>
 
         <View className="mt-8 flex-row items-center justify-center gap-1">

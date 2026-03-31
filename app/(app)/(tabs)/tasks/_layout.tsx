@@ -2,13 +2,12 @@ import { useCallback, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { Stack, usePathname, router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { PillTabs } from '@/shared/components/ui/pill-tabs';
-import { Plus, Calendar } from 'lucide-react-native';
+import { Plus } from 'lucide-react-native';
 import { useTranslation } from '@/shared/hooks/useTranslation';
-import { format } from 'date-fns';
 import { TaskFormSheet } from '@features/tasks/components/TaskFormSheet';
+import { PageHeader } from '@features/personalization/components/PageHeader';
 
 function TasksHeader({ onAddTask }: { onAddTask: () => void }) {
   const { t } = useTranslation('navigation');
@@ -41,26 +40,21 @@ function TasksHeader({ onAddTask }: { onAddTask: () => void }) {
     router.replace(routes[key] as never);
   }, []);
 
-  const today = format(new Date(), 'MMM d');
-
   return (
     <>
-      <View className="flex-row items-center justify-between px-4 pb-1 pt-3">
-        <View className="flex-row items-center gap-2">
-          <Text className="text-2xl font-bold text-foreground">{tTasks('title')}</Text>
-          <View className="flex-row items-center gap-1 rounded-lg bg-muted px-2 py-1">
-            <Icon as={Calendar} size={12} className="text-muted-foreground" />
-            <Text className="text-xs text-muted-foreground">{today}</Text>
-          </View>
-        </View>
-        <Pressable
-          onPress={onAddTask}
-          className="h-9 w-9 items-center justify-center rounded-full bg-primary active:bg-primary-hover"
-          hitSlop={8}
-        >
-          <Icon as={Plus} size={18} className="text-primary-foreground" />
-        </Pressable>
-      </View>
+      <PageHeader
+        sectionId="tasks"
+        title={tTasks('title')}
+        actions={
+          <Pressable
+            onPress={onAddTask}
+            className="h-9 w-9 items-center justify-center rounded-full bg-primary active:bg-primary-hover"
+            hitSlop={8}
+          >
+            <Icon as={Plus} size={18} className="text-primary-foreground" />
+          </Pressable>
+        }
+      />
       <View className="px-4 py-2">
         <PillTabs tabs={TABS} activeKey={activeTab} onTabPress={handleTabPress} />
       </View>

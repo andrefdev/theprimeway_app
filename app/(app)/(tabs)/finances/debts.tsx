@@ -1,16 +1,13 @@
-import { View, Pressable } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View } from 'react-native';
 import { FlatList } from 'react-native';
 import { Text } from '@/shared/components/ui/text';
-import { Icon } from '@/shared/components/ui/icon';
-import { Header } from '@/shared/components/layout/Header';
 import { LoadingOverlay } from '@/shared/components/feedback/LoadingOverlay';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
 import { useDebts } from '@features/finances/hooks/useFinances';
 import { formatCurrency } from '@/shared/utils/currency';
 import { formatDate } from '@/shared/utils/date';
 import { cn } from '@/shared/utils/cn';
-import { CreditCard, Plus } from 'lucide-react-native';
+import { CreditCard } from 'lucide-react-native';
 import { useTranslation } from '@/shared/hooks/useTranslation';
 import type { Debt } from '@shared/types/models';
 
@@ -76,7 +73,7 @@ export default function DebtsScreen() {
           )}
           {item.installmentAmount != null && item.installmentAmount > 0 && (
             <Text className="text-xs text-muted-foreground">
-              {formatCurrency(item.installmentAmount, item.currency)}/mo
+              {formatCurrency(item.installmentAmount, item.currency)}{t('perMonth')}
             </Text>
           )}
         </View>
@@ -84,50 +81,40 @@ export default function DebtsScreen() {
     );
   };
 
-  return (
-    <SafeAreaView edges={['top']} className="flex-1 bg-background">
-      <Header
-        title={t('debts.title')}
-        showBack
-        rightAction={
-          <Pressable hitSlop={8}>
-            <Icon as={Plus} size={24} className="text-primary" />
-          </Pressable>
-        }
-      />
+  if (isLoading) {
+    return <LoadingOverlay message={tCommon('actions.loading')} />;
+  }
 
-      {isLoading ? (
-        <LoadingOverlay message={tCommon('actions.loading')} />
-      ) : !debts || debts.length === 0 ? (
-        <EmptyState
-          icon={CreditCard}
-          title={t('debts.messages.noDebtsYet')}
-          description={t('debts.messages.addFirst')}
-          actionLabel={t('debts.actions.add')}
-          onAction={() => {}}
-        />
-      ) : (
-        <>
-          {/* Total Debt Header */}
-          <View className="items-center border-b border-border px-4 pb-4">
+  if (!debts || debts.length === 0) {
+    return (
+      <EmptyState
+        icon={CreditCard}
+        title={t('debts.messages.noDebtsYet')}
+        description={t('debts.messages.addFirst')}
+      />
+    );
+  }
+
+  return (
+    <View className="flex-1 bg-background">
+      <FlatList
+        data={debts}
+        renderItem={renderDebt}
+        keyExtractor={(item) => item.id}
+        contentContainerClassName="pb-8"
+        showsVerticalScrollIndicator={false}
+        ListHeaderComponent={
+          <View className="items-center px-4 pb-5 pt-4">
             <Text className="text-xs text-muted-foreground">{t('debts.fields.remaining')}</Text>
-            <Text className="text-2xl font-bold text-destructive">
+            <Text className="mt-1 text-3xl font-bold text-destructive">
               {formatCurrency(totalDebt)}
             </Text>
-            <Text className="mt-0.5 text-xs text-muted-foreground">
+            <Text className="mt-1 text-xs text-muted-foreground">
               {debts.length} {t('debts.title')}
             </Text>
           </View>
-
-          <FlatList
-            data={debts}
-            renderItem={renderDebt}
-            keyExtractor={(item) => item.id}
-            contentContainerClassName="pt-4"
-            showsVerticalScrollIndicator={false}
-          />
-        </>
-      )}
-    </SafeAreaView>
+        }
+      />
+    </View>
   );
 }

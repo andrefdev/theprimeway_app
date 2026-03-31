@@ -8,6 +8,10 @@ import { useUpdateTask } from '../hooks/useTasks';
 import { cn } from '@/shared/utils/cn';
 import type { Task } from '@shared/types/models';
 import * as Haptics from 'expo-haptics';
+import {
+  showTaskTimerNotification,
+  dismissTaskTimerNotification,
+} from '@/features/notifications/timerNotifications';
 
 function formatTime(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -57,10 +61,30 @@ export function TaskTimerSheet({ task, isOpen, onClose }: TaskTimerSheetProps) {
       intervalRef.current = setInterval(() => {
         const now = Date.now();
         const delta = Math.floor((now - startTimestampRef.current) / 1000);
-        setElapsedSeconds(baseElapsedRef.current + delta);
+        const current = baseElapsedRef.current + delta;
+        setElapsedSeconds(current);
+
+        // Update persistent notification every 5 seconds
+        if (task && delta % 5 === 0) {
+          showTaskTimerNotification(
+            current,
+            task.title,
+            task.estimatedDurationMinutes
+          );
+        }
       }, 1000);
+
+      // Show initial notification immediately
+      if (task) {
+        showTaskTimerNotification(
+          baseElapsedRef.current,
+          task.title,
+          task.estimatedDurationMinutes
+        );
+      }
     } else {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      dismissTaskTimerNotification();
     }
 
     return () => {
@@ -114,6 +138,7 @@ export function TaskTimerSheet({ task, isOpen, onClose }: TaskTimerSheetProps) {
       id: task.id,
       data: { status: 'completed', actualDurationSeconds: elapsedSeconds, actualDurationMinutes: Math.floor(elapsedSeconds / 60) } as any,
     });
+    dismissTaskTimerNotification();
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     onClose();
   }, [task, elapsedSeconds, saveProgress, updateTask, onClose]);
@@ -123,6 +148,7 @@ export function TaskTimerSheet({ task, isOpen, onClose }: TaskTimerSheetProps) {
       baseElapsedRef.current = elapsedSeconds;
       setIsPlaying(false);
     }
+    dismissTaskTimerNotification();
     saveProgress(elapsedSeconds);
     onClose();
   }, [isPlaying, elapsedSeconds, saveProgress, onClose]);

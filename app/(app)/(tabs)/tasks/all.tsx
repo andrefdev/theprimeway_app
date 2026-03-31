@@ -198,7 +198,7 @@ export default function AllTasksScreen() {
       {/* Results Count */}
       <View className="flex-row items-center justify-between px-4 py-2">
         <Text className="text-xs text-muted-foreground">
-          {filteredTasks.length} {filteredTasks.length === 1 ? 'task' : 'tasks'}
+          {filteredTasks.length === 1 ? t('taskCount', { count: filteredTasks.length }) : t('taskCountPlural', { count: filteredTasks.length })}
         </Text>
         {hasActiveFilters && (
           <Pressable

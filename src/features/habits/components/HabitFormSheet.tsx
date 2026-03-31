@@ -3,8 +3,12 @@ import { Alert, View, TextInput, Pressable, ActivityIndicator } from 'react-nati
 import { FormSheet } from '@/shared/components/ui/form-sheet';
 import { Text } from '@/shared/components/ui/text';
 import { Button } from '@/shared/components/ui/button';
+import { Icon } from '@/shared/components/ui/icon';
+import { Layers, X } from 'lucide-react-native';
 import { useCreateHabit } from '../hooks/useHabits';
 import { cn } from '@/shared/utils/cn';
+import type { PrimePillar } from '@shared/types/models';
+import { PillarPickerSheet } from '@features/goals/components/PillarPickerSheet';
 
 const CATEGORIES = [
   { key: 'health', label: 'Health', emoji: '💪' },
@@ -32,6 +36,8 @@ export function HabitFormSheet({ isOpen, onClose }: HabitFormSheetProps) {
   const [color, setColor] = useState('#280FFB');
   const [freqType, setFreqType] = useState('daily');
   const [weekDays, setWeekDays] = useState<number[]>([]);
+  const [linkedPillar, setLinkedPillar] = useState<PrimePillar | null>(null);
+  const [showPillarPicker, setShowPillarPicker] = useState(false);
 
   const toggleDay = (i: number) => {
     setWeekDays((prev) => prev.includes(i) ? prev.filter((d) => d !== i) : [...prev, i]);
@@ -47,12 +53,14 @@ export function HabitFormSheet({ isOpen, onClose }: HabitFormSheetProps) {
         frequency_type: freqType,
         target_frequency: 1,
         week_days: freqType === 'week_days' ? weekDays : undefined,
-      });
+        ...(linkedPillar ? { pillar_id: linkedPillar.id } : {}),
+      } as any);
       setName('');
       setCategory('health');
       setColor('#280FFB');
       setFreqType('daily');
       setWeekDays([]);
+      setLinkedPillar(null);
       onClose();
     } catch {
       Alert.alert('Error', 'Could not create habit');
@@ -146,6 +154,31 @@ export function HabitFormSheet({ isOpen, onClose }: HabitFormSheetProps) {
         </View>
       )}
 
+      {/* Link to Pillar */}
+      <View>
+        <Text className="mb-2 text-xs font-medium text-muted-foreground">Link to Pillar</Text>
+        <Pressable
+          onPress={() => setShowPillarPicker(true)}
+          className="flex-row items-center gap-3 rounded-xl border border-border bg-card px-4 py-3 active:opacity-70"
+        >
+          <Icon as={Layers} size={16} className="text-muted-foreground" />
+          <Text className="flex-1 text-sm text-foreground" numberOfLines={1}>
+            {linkedPillar ? linkedPillar.title : 'Link a pillar (optional)'}
+          </Text>
+          {linkedPillar ? (
+            <Pressable
+              onPress={(e) => {
+                e.stopPropagation();
+                setLinkedPillar(null);
+              }}
+              hitSlop={8}
+            >
+              <Icon as={X} size={14} className="text-muted-foreground" />
+            </Pressable>
+          ) : null}
+        </Pressable>
+      </View>
+
       <Button className="h-12 rounded-xl" onPress={handleSubmit} disabled={createHabit.isPending || !name.trim()}>
         {createHabit.isPending ? (
           <ActivityIndicator size="small" color="white" />
@@ -153,6 +186,13 @@ export function HabitFormSheet({ isOpen, onClose }: HabitFormSheetProps) {
           <Text className="text-sm font-bold text-primary-foreground">Create Habit</Text>
         )}
       </Button>
+
+      <PillarPickerSheet
+        isOpen={showPillarPicker}
+        onClose={() => setShowPillarPicker(false)}
+        selectedPillarId={linkedPillar?.id}
+        onSelect={(pillar) => setLinkedPillar(pillar)}
+      />
     </FormSheet>
   );
 }

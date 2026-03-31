@@ -1,4 +1,4 @@
-import { View, Pressable } from 'react-native';
+import { View, Pressable, ScrollView } from 'react-native';
 import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,124 +8,220 @@ import {
   Target,
   BookOpen,
   FileText,
-  Sparkles,
+  Bot,
   Calendar,
   Timer,
   User,
   Settings,
-  Crown,
+  CreditCard,
+  Bell,
+  Compass,
+  CheckCircle2,
 } from 'lucide-react-native';
 import type { LucideIcon } from 'lucide-react-native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
+import { useTranslation } from '@/shared/hooks/useTranslation';
+import { useVisions } from '@/features/goals/hooks/useGoals';
 
-const MENU_ITEMS: {
+interface HubItem {
   icon: LucideIcon;
   label: string;
   route: string;
-  color: string;
-  bgColor: string;
-}[] = [
+  iconClass: string;
+  bgClass: string;
+}
+
+const GOALS_ITEMS: HubItem[] = [
   {
     icon: Target,
-    label: 'Goals',
+    label: 'Prime Roadmap',
     route: '/(app)/(tabs)/goals/roadmap',
-    color: 'text-warning',
-    bgColor: 'bg-warning/15',
+    iconClass: 'text-warning',
+    bgClass: 'bg-warning/15',
   },
   {
     icon: BookOpen,
     label: 'Reading',
     route: '/(app)/(tabs)/goals/reading',
-    color: 'text-info',
-    bgColor: 'bg-info/15',
+    iconClass: 'text-info',
+    bgClass: 'bg-info/15',
   },
+];
+
+const PRODUCTIVITY_ITEMS: HubItem[] = [
   {
     icon: FileText,
     label: 'Notes',
     route: '/(app)/notes',
-    color: 'text-accent',
-    bgColor: 'bg-accent/15',
+    iconClass: 'text-success',
+    bgClass: 'bg-success/15',
   },
   {
-    icon: Sparkles,
+    icon: Bot,
     label: 'AI Chat',
     route: '/(app)/ai',
-    color: 'text-primary',
-    bgColor: 'bg-primary/15',
+    iconClass: 'text-primary',
+    bgClass: 'bg-primary/15',
   },
   {
     icon: Calendar,
     label: 'Calendar',
     route: '/(app)/calendar',
-    color: 'text-success',
-    bgColor: 'bg-success/15',
+    iconClass: 'text-destructive',
+    bgClass: 'bg-destructive/15',
   },
   {
     icon: Timer,
     label: 'Pomodoro',
     route: '/(app)/pomodoro',
-    color: 'text-destructive',
-    bgColor: 'bg-destructive/15',
+    iconClass: 'text-warning',
+    bgClass: 'bg-warning/15',
   },
+];
+
+const ACCOUNT_ITEMS: HubItem[] = [
   {
     icon: User,
     label: 'Profile',
     route: '/(app)/profile',
-    color: 'text-muted-foreground',
-    bgColor: 'bg-muted',
+    iconClass: 'text-foreground',
+    bgClass: 'bg-muted',
   },
   {
     icon: Settings,
     label: 'Settings',
     route: '/(app)/settings',
-    color: 'text-muted-foreground',
-    bgColor: 'bg-muted',
+    iconClass: 'text-foreground',
+    bgClass: 'bg-muted',
   },
   {
-    icon: Crown,
-    label: 'Premium',
+    icon: CreditCard,
+    label: 'Subscription',
     route: '/(app)/subscription',
-    color: 'text-primary',
-    bgColor: 'bg-primary/15',
+    iconClass: 'text-primary',
+    bgClass: 'bg-primary/15',
+  },
+  {
+    icon: Bell,
+    label: 'Notifications',
+    route: '/(app)/notifications',
+    iconClass: 'text-foreground',
+    bgClass: 'bg-muted',
   },
 ];
 
+function HubGrid({ items, delay = 0 }: { items: HubItem[]; delay?: number }) {
+  return (
+    <View className="flex-row flex-wrap gap-3">
+      {items.map((item, index) => (
+        <Animated.View
+          key={item.label}
+          entering={FadeInDown.delay(delay + index * 50).duration(280)}
+          className="w-[47%] flex-grow"
+        >
+          <Pressable
+            className="items-center rounded-2xl border border-border bg-card px-2 py-5 active:bg-muted"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              router.push(item.route as any);
+            }}
+          >
+            <View className={`h-12 w-12 items-center justify-center rounded-full ${item.bgClass}`}>
+              <Icon as={item.icon} size={24} className={item.iconClass} />
+            </View>
+            <Text className="mt-2.5 text-xs font-medium text-foreground">{item.label}</Text>
+          </Pressable>
+        </Animated.View>
+      ))}
+    </View>
+  );
+}
+
+function SectionTitle({ label, delay }: { label: string; delay: number }) {
+  return (
+    <Animated.View entering={FadeInDown.delay(delay).duration(280)}>
+      <Text className="mb-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        {label}
+      </Text>
+    </Animated.View>
+  );
+}
+
 export default function MoreScreen() {
+  const { t } = useTranslation('navigation');
+  const { data: visions, isLoading } = useVisions();
+  const hasVision = !isLoading && visions && visions.length > 0;
+
   return (
     <SafeAreaView className="flex-1 bg-background" edges={['top']}>
       <View className="px-4 pb-2 pt-3">
-        <Text className="text-2xl font-bold text-foreground">More</Text>
+        <Text className="text-2xl font-bold text-foreground">{t('more')}</Text>
       </View>
 
-      <View className="flex-1 px-4 pt-4">
-        <View className="flex-row flex-wrap gap-3">
-          {MENU_ITEMS.map((item, index) => (
-            <Animated.View
-              key={item.label}
-              entering={FadeInDown.delay(index * 40).duration(300)}
-              className="w-[30%] flex-grow"
-            >
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-4 pt-4 pb-8 gap-6"
+        showsVerticalScrollIndicator={false}
+      >
+        {/* ── Goals & Growth ───────────────────────────────── */}
+        <View>
+          <SectionTitle label="Goals & Growth" delay={60} />
+
+          {/* Alignment CTA */}
+          <Animated.View entering={FadeInDown.delay(100).duration(280)} className="mb-3">
+            {!hasVision ? (
               <Pressable
-                className="items-center rounded-2xl border border-border bg-card px-2 py-5 active:bg-muted"
                 onPress={() => {
                   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  router.push(item.route as any);
+                  router.push('/(app)/alignment-setup' as any);
                 }}
+                className="overflow-hidden rounded-2xl border border-primary/30 bg-primary/5 active:bg-primary/10"
               >
-                <View className={`h-12 w-12 items-center justify-center rounded-full ${item.bgColor}`}>
-                  <Icon as={item.icon} size={24} className={item.color} />
+                <View className="h-1 bg-primary/50" />
+                <View className="flex-row items-center gap-4 p-4">
+                  <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/15">
+                    <Icon as={Compass} size={24} className="text-primary" />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-base font-semibold text-foreground">
+                      Set Up Your Vision
+                    </Text>
+                    <Text className="mt-0.5 text-sm leading-5 text-muted-foreground">
+                      Let AI coach guide you to define your life vision and goals
+                    </Text>
+                  </View>
                 </View>
-                <Text className="mt-2.5 text-xs font-medium text-foreground">{item.label}</Text>
+                <View className="mx-4 mb-4">
+                  <View className="items-center rounded-xl bg-primary py-2.5">
+                    <Text className="text-sm font-semibold text-primary-foreground">
+                      Start Alignment
+                    </Text>
+                  </View>
+                </View>
               </Pressable>
-            </Animated.View>
-          ))}
+            ) : (
+              <View className="flex-row items-center gap-2 self-start rounded-xl bg-success/10 px-4 py-2">
+                <Icon as={CheckCircle2} size={14} className="text-success" />
+                <Text className="text-xs font-medium text-success">Vision Aligned</Text>
+              </View>
+            )}
+          </Animated.View>
+
+          <HubGrid items={GOALS_ITEMS} delay={150} />
         </View>
 
-        {/* Footer */}
-        <View className="mt-auto items-center pb-8 pt-6">
-          <Text className="text-2xs text-muted-foreground">The Prime Way v2.0.0</Text>
+        {/* ── Productivity ─────────────────────────────────── */}
+        <View>
+          <SectionTitle label="Productivity" delay={280} />
+          <HubGrid items={PRODUCTIVITY_ITEMS} delay={320} />
         </View>
-      </View>
+
+        {/* ── Account ──────────────────────────────────────── */}
+        <View>
+          <SectionTitle label="Account" delay={460} />
+          <HubGrid items={ACCOUNT_ITEMS} delay={500} />
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }

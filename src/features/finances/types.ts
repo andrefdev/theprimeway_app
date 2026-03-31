@@ -134,6 +134,7 @@ export interface TransactionQueryParams {
   pageSize?: number;
   accountId?: string;
   type?: 'income' | 'expense' | 'transfer';
+  status?: 'pending' | 'reviewed' | 'excluded';
   startDate?: string;
   endDate?: string;
   search?: string;
@@ -150,8 +151,16 @@ export interface FinanceStats {
   totalIncome: number;
   totalExpenses: number;
   netIncome: number;
+  /** Always reflects the current calendar month */
+  monthlyIncome: number;
+  monthlyExpenses: number;
+  monthlyNet: number;
   currency: string;
-  accountsCount: number;
-  budgetsCount: number;
-  savingsProgress: number;
+  accountsCount?: number;
+  budgetsCount?: number;
+  savingsProgress?: number;
+  pendingTransactionsCount?: number;
+  netWorth?: number;
+  totalAssets?: number;
+  totalLiabilities?: number;
 }

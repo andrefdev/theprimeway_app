@@ -18,6 +18,8 @@ export const queryKeys = {
     outcomes: ['goals', 'outcomes'],
     focuses: ['goals', 'focuses'],
     weekly: ['goals', 'weekly'],
+    healthSnapshots: ['goals', 'health-snapshots'],
+    focusLinks: (focusId: string) => ['goals', 'focus-links', focusId],
   },
   finances: {
     accounts: ['finances', 'accounts'],
@@ -28,6 +30,11 @@ export const queryKeys = {
     income: ['finances', 'income-sources'],
     stats: ['finances', 'stats'],
     recurringExpenses: ['finances', 'recurring-expenses'],
+    investments: ['finances', 'investments'],
+    investmentsSummary: ['finances', 'investments', 'summary'],
+    pendingTransactions: ['finances', 'transactions', 'pending'],
+    incomeEstimates: ['finances', 'income-estimates'],
+    netWorth: ['finances', 'net-worth'],
   },
   notes: {
     all: ['notes'],
@@ -50,5 +57,8 @@ export const queryKeys = {
   subscription: {
     status: ['subscription', 'status'],
     plans: ['subscription', 'plans'],
+  },
+  notifications: {
+    aggregated: ['notifications', 'aggregated'],
   },
 };

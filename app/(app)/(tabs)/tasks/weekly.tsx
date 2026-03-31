@@ -1,19 +1,57 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { FlatList } from 'react-native';
 import { router } from 'expo-router';
 import { Text } from '@/shared/components/ui/text';
 import { Icon } from '@/shared/components/ui/icon';
 import { EmptyState } from '@/shared/components/feedback/EmptyState';
-import { LoadingOverlay } from '@/shared/components/feedback/LoadingOverlay';
 import { TaskCard } from '@/features/tasks/components/TaskCard';
 import { TaskEditSheet } from '@/features/tasks/components/TaskEditSheet';
 import { useTasksGrouped, useUpdateTask, useDeleteTask } from '@/features/tasks/hooks/useTasks';
 import { cn } from '@/shared/utils/cn';
 import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react-native';
-import { addDays, format, startOfWeek, endOfWeek, isToday } from 'date-fns';
+import { addDays, format, isToday } from 'date-fns';
+import { startOfWeek } from 'date-fns';
 import type { Task } from '@shared/types/models';
 import { useTranslation } from '@/shared/hooks/useTranslation';
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  FadeIn,
+} from 'react-native-reanimated';
+
+// ============================================================
+// SKELETON
+// ============================================================
+
+function SkeletonPulse({ className }: { className: string }) {
+  const opacity = useSharedValue(1);
+
+  useEffect(() => {
+    opacity.value = withRepeat(withTiming(0.4, { duration: 700 }), -1, true);
+  }, []);
+
+  const style = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  return <Animated.View style={style} className={cn('rounded-lg bg-muted', className)} />;
+}
+
+function TaskCardSkeleton() {
+  return (
+    <View className="flex-row items-center gap-4 rounded-2xl border border-border bg-card px-4 py-4">
+      <SkeletonPulse className="h-8 w-8 rounded-full" />
+      <View className="flex-1 gap-2">
+        <SkeletonPulse className="h-4 w-3/4" />
+        <View className="flex-row gap-2">
+          <SkeletonPulse className="h-3 w-16 rounded-full" />
+          <SkeletonPulse className="h-3 w-12 rounded-full" />
+        </View>
+      </View>
+    </View>
+  );
+}
 
 // ============================================================
 // TYPES
@@ -40,11 +78,11 @@ export default function WeeklyScreen() {
   const deleteTask = useDeleteTask();
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  // Build week days
+  // Build week days — pure state, no API needed
   const weekDays = useMemo(() => {
     const now = new Date();
     const offsetDate = addDays(now, weekOffset * 7);
-    const weekStart = startOfWeek(offsetDate, { weekStartsOn: 1 }); // Monday
+    const weekStart = startOfWeek(offsetDate, { weekStartsOn: 1 });
     return Array.from({ length: 7 }, (_, i) => {
       const date = addDays(weekStart, i);
       return {
@@ -63,7 +101,6 @@ export default function WeeklyScreen() {
     return `${format(ws, 'MMM d')} - ${format(we, 'MMM d, yyyy')}`;
   }, [weekDays]);
 
-  // All tasks flattened from grouped response
   const allTasks = useMemo(() => {
     if (!grouped) return [];
     return [
@@ -75,12 +112,11 @@ export default function WeeklyScreen() {
     ];
   }, [grouped]);
 
-  // Build sections by day
   const daySections: DaySection[] = useMemo(() => {
     return weekDays.map((day) => {
-      const dayTasks = allTasks.filter((t) => {
-        const sched = t.scheduledDate?.split('T')[0] ?? '';
-        const due = t.dueDate?.split('T')[0] ?? '';
+      const dayTasks = allTasks.filter((task) => {
+        const sched = task.scheduledDate?.split('T')[0] ?? '';
+        const due = task.dueDate?.split('T')[0] ?? '';
         return sched === day.dateStr || due === day.dateStr;
       });
       return {
@@ -92,20 +128,16 @@ export default function WeeklyScreen() {
     });
   }, [weekDays, allTasks]);
 
-  // Active section tasks
   const activeTasks = useMemo(() => {
     if (selectedDay) {
-      const section = daySections.find((s) => s.dateStr === selectedDay);
-      return section?.tasks ?? [];
+      return daySections.find((s) => s.dateStr === selectedDay)?.tasks ?? [];
     }
-    // Show all week tasks
     return daySections.flatMap((s) => s.tasks);
   }, [daySections, selectedDay]);
 
   const activeLabel = useMemo(() => {
     if (selectedDay) {
-      const section = daySections.find((s) => s.dateStr === selectedDay);
-      return section?.label ?? '';
+      return daySections.find((s) => s.dateStr === selectedDay)?.label ?? '';
     }
     return t('allWeek');
   }, [daySections, selectedDay]);
@@ -120,24 +152,19 @@ export default function WeeklyScreen() {
     [updateTask]
   );
 
-  const handlePress = useCallback((task: Task) => {
-    setEditingTask(task);
-  }, []);
+  const handlePress = useCallback((task: Task) => setEditingTask(task), []);
 
   const handleDelete = useCallback(
-    (task: Task) => {
-      deleteTask.mutate(task.id);
-    },
+    (task: Task) => deleteTask.mutate(task.id),
     [deleteTask]
   );
 
-  if (isLoading) {
-    return <LoadingOverlay message={t('loadingWeekly')} />;
-  }
+  // Skeleton count: 4 placeholder cards
+  const SKELETON_COUNT = 4;
 
   return (
     <View className="flex-1 bg-background">
-      {/* Week Navigation */}
+      {/* Week Navigation — always visible */}
       <View className="flex-row items-center justify-between px-4 py-2">
         <Pressable onPress={() => setWeekOffset((o) => o - 1)} hitSlop={8}>
           <Icon as={ChevronLeft} size={20} className="text-foreground" />
@@ -150,9 +177,8 @@ export default function WeeklyScreen() {
         </Pressable>
       </View>
 
-      {/* Day Selector */}
+      {/* Day Selector — always visible */}
       <View className="flex-row border-b border-border px-2 pb-2">
-        {/* "All" pill */}
         <Pressable
           onPress={() => setSelectedDay(null)}
           className={cn(
@@ -172,7 +198,8 @@ export default function WeeklyScreen() {
 
         {weekDays.map((day) => {
           const isSelected = selectedDay === day.dateStr;
-          const dayTaskCount = daySections.find((s) => s.dateStr === day.dateStr)?.tasks.length ?? 0;
+          const dayTaskCount =
+            daySections.find((s) => s.dateStr === day.dateStr)?.tasks.length ?? 0;
           return (
             <Pressable
               key={day.dateStr}
@@ -223,37 +250,53 @@ export default function WeeklyScreen() {
       {/* Section Label */}
       <View className="px-4 py-2">
         <Text className="text-sm font-medium text-muted-foreground">
-          {activeLabel} ({activeTasks.length})
+          {isLoading ? (
+            <SkeletonPulse className="h-3.5 w-32" />
+          ) : (
+            `${activeLabel} (${activeTasks.length})`
+          )}
         </Text>
       </View>
 
-      {/* Task List */}
-      <FlatList
-        data={activeTasks}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <TaskCard
-            task={item}
-            onToggleComplete={handleToggleComplete}
-            onPress={handlePress}
-            
-          />
-        )}
-        ItemSeparatorComponent={() => <View className="h-2" />}
-        ListEmptyComponent={
-          <EmptyState
-            icon={CalendarDays}
-            title={t('noTasksThisWeek')}
-            description={t('noTasksThisWeekDescription')}
-            actionLabel={t('newTask')}
-            onAction={() => router.push('/(app)/(tabs)/tasks/new' as never)}
-          />
-        }
-        refreshing={isLoading}
-        onRefresh={refetch}
-        contentContainerClassName="px-4 pb-20"
+      {/* Task List — skeleton while loading, real data when ready */}
+      {isLoading ? (
+        <Animated.View entering={FadeIn.duration(150)} className="px-4 gap-2">
+          {Array.from({ length: SKELETON_COUNT }).map((_, i) => (
+            <TaskCardSkeleton key={i} />
+          ))}
+        </Animated.View>
+      ) : (
+        <FlatList
+          data={activeTasks}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <TaskCard
+              task={item}
+              onToggleComplete={handleToggleComplete}
+              onPress={handlePress}
+            />
+          )}
+          ItemSeparatorComponent={() => <View className="h-2" />}
+          ListEmptyComponent={
+            <EmptyState
+              icon={CalendarDays}
+              title={t('noTasksThisWeek')}
+              description={t('noTasksThisWeekDescription')}
+              actionLabel={t('newTask')}
+              onAction={() => router.push('/(app)/(tabs)/tasks/new' as never)}
+            />
+          }
+          refreshing={false}
+          onRefresh={refetch}
+          contentContainerClassName="px-4 pb-20"
+        />
+      )}
+
+      <TaskEditSheet
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
       />
-      <TaskEditSheet task={editingTask} isOpen={!!editingTask} onClose={() => setEditingTask(null)} />
     </View>
   );
 }

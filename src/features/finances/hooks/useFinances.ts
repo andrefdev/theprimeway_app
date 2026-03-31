@@ -9,6 +9,7 @@ import type {
   SavingsGoalFormData,
   TransactionQueryParams,
 } from '../types';
+import type { Transaction } from '@shared/types/models';
 
 // ── Query Hooks ─────────────────────────────────────────────
 
@@ -58,6 +59,13 @@ export function useIncomeSources() {
   return useQuery({
     queryKey: queryKeys.finances.income,
     queryFn: financesService.getIncomeSources,
+  });
+}
+
+export function useRecurringExpenses() {
+  return useQuery({
+    queryKey: queryKeys.finances.recurringExpenses,
+    queryFn: financesService.getRecurringExpenses,
   });
 }
 
@@ -120,6 +128,19 @@ export function useCreateSavingsGoal() {
     mutationFn: (data: SavingsGoalFormData) => financesService.createSavingsGoal(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.finances.savings });
+      queryClient.invalidateQueries({ queryKey: queryKeys.finances.stats });
+    },
+  });
+}
+
+export function useUpdateTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<Transaction> }) =>
+      financesService.updateTransaction(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.finances.transactions });
       queryClient.invalidateQueries({ queryKey: queryKeys.finances.stats });
     },
   });

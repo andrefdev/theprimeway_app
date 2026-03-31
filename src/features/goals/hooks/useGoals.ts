@@ -49,8 +49,16 @@ export function useWeeklyGoals() {
 
 export function useHealthSnapshots() {
   return useQuery({
-    queryKey: ['goals', 'health-snapshots'],
+    queryKey: queryKeys.goals.healthSnapshots,
     queryFn: goalsService.getHealthSnapshots,
+  });
+}
+
+export function useFocusLinks(focusId: string) {
+  return useQuery({
+    queryKey: queryKeys.goals.focusLinks(focusId),
+    queryFn: () => goalsService.getFocusLinks(focusId),
+    enabled: !!focusId,
   });
 }
 
@@ -177,5 +185,13 @@ export function useUpdateWeeklyGoal() {
       queryClient.invalidateQueries({ queryKey: queryKeys.goals.weekly });
       queryClient.invalidateQueries({ queryKey: queryKeys.goals.focuses });
     },
+  });
+}
+
+export function useCreateHealthSnapshot() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => goalsService.createHealthSnapshot(),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.goals.healthSnapshots }),
   });
 }

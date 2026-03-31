@@ -8,16 +8,14 @@ import { Platform } from 'react-native';
 // Ensure browser sessions complete correctly
 WebBrowser.maybeCompleteAuthSession();
 
-const GOOGLE_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID;
-
 export function useGoogleAuth() {
   const loginWithOAuth = useAuthStore((s) => s.loginWithOAuth);
   const [isLoading, setIsLoading] = useState(false);
 
   const [, response, promptAsync] = Google.useAuthRequest({
-    androidClientId: GOOGLE_CLIENT_ID,
-    iosClientId: GOOGLE_CLIENT_ID,
-    webClientId: GOOGLE_CLIENT_ID,
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
     scopes: ['openid', 'email', 'profile'],
   });
 
@@ -86,7 +84,11 @@ export function useGitHubAuth() {
     setIsLoading(true);
     try {
       // GitHub OAuth via web browser redirect
-      const redirectUri = AuthSession.makeRedirectUri({ scheme: 'theprimeway' });
+      // useProxy=true routes through auth.expo.io — required for Expo Go and consistent across envs
+      const redirectUri = AuthSession.makeRedirectUri({
+        scheme: 'theprimeway',
+        useProxy: true,
+      });
       const authUrl = `https://github.com/login/oauth/authorize?client_id=${process.env.EXPO_PUBLIC_GITHUB_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user+user:email`;
 
       const result = await WebBrowser.openAuthSessionAsync(authUrl, redirectUri);

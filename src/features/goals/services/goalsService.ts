@@ -21,10 +21,24 @@ import type {
 
 export interface HealthSnapshot {
   id: string;
-  area: string;
-  score: number;
-  notes?: string;
+  overallScore: number;
+  financesScore: number;
+  habitsScore: number;
+  tasksScore: number;
+  goalsScore: number;
+  insights: string[];
+  recommendations: string[];
   createdAt: string;
+}
+
+// ============================================================
+// Focus Links
+// ============================================================
+
+export interface FocusLink {
+  id: string;
+  title: string;
+  status?: string;
 }
 
 // ============================================================
@@ -135,5 +149,19 @@ export const goalsService = {
       GOALS.HEALTH_SNAPSHOTS
     );
     return data.data ?? [];
+  },
+
+  createHealthSnapshot: async (): Promise<HealthSnapshot> => {
+    const { data } = await apiClient.post<{ data: HealthSnapshot }>(GOALS.HEALTH_SNAPSHOTS);
+    return data.data;
+  },
+
+  // ---- Focus Links ----
+  getFocusLinks: async (focusId: string): Promise<{ tasks: FocusLink[]; habits: FocusLink[] }> => {
+    const [tasks, habits] = await Promise.all([
+      apiClient.get<{ data: FocusLink[] }>(`${GOALS.FOCUS_LINKS_TASKS}?focusId=${focusId}`),
+      apiClient.get<{ data: FocusLink[] }>(`${GOALS.FOCUS_LINKS_HABITS}?focusId=${focusId}`),
+    ]);
+    return { tasks: tasks.data.data ?? [], habits: habits.data.data ?? [] };
   },
 };

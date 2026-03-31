@@ -9,23 +9,26 @@ import { useAccounts, useCreateTransaction } from '../hooks/useFinances';
 import { transactionSchema } from '../types';
 import type { TransactionFormData } from '../types';
 import type { TransactionType } from '@shared/types/models';
+import { useTranslation } from '@/shared/hooks/useTranslation';
 
 interface TransactionFormProps {
   onSuccess?: () => void;
   className?: string;
+  initialType?: TransactionType;
 }
 
-const TRANSACTION_TYPES: { value: TransactionType; label: string; icon: typeof ArrowUpRight; color: string }[] = [
-  { value: 'income', label: 'Income', icon: ArrowUpRight, color: 'bg-emerald-500' },
-  { value: 'expense', label: 'Expense', icon: ArrowDownRight, color: 'bg-red-500' },
-  { value: 'transfer', label: 'Transfer', icon: ArrowLeftRight, color: 'bg-blue-500' },
+const TRANSACTION_TYPES: { value: TransactionType; labelKey: string; icon: typeof ArrowUpRight; color: string }[] = [
+  { value: 'income', labelKey: 'income', icon: ArrowUpRight, color: 'bg-emerald-500' },
+  { value: 'expense', labelKey: 'expense', icon: ArrowDownRight, color: 'bg-red-500' },
+  { value: 'transfer', labelKey: 'transfer', icon: ArrowLeftRight, color: 'bg-blue-500' },
 ];
 
-export function TransactionForm({ onSuccess, className }: TransactionFormProps) {
+export function TransactionForm({ onSuccess, className, initialType = 'expense' }: TransactionFormProps) {
+  const { t } = useTranslation('features.finances.transactionForm');
   const { data: accounts } = useAccounts();
   const createTransaction = useCreateTransaction();
 
-  const [type, setType] = useState<TransactionType>('expense');
+  const [type, setType] = useState<TransactionType>(initialType);
   const [amount, setAmount] = useState('');
   const [description, setDescription] = useState('');
   const [notes, setNotes] = useState('');
@@ -77,31 +80,31 @@ export function TransactionForm({ onSuccess, className }: TransactionFormProps) 
       <View className="gap-5 p-4">
         {/* Transaction Type Selector */}
         <View>
-          <Text className="mb-2 text-sm font-medium text-foreground">Type</Text>
+          <Text className="mb-2 text-sm font-medium text-foreground">{t('type')}</Text>
           <View className="flex-row gap-2">
-            {TRANSACTION_TYPES.map((t) => (
+            {TRANSACTION_TYPES.map((txType) => (
               <Pressable
-                key={t.value}
-                onPress={() => setType(t.value)}
+                key={txType.value}
+                onPress={() => setType(txType.value)}
                 className={cn(
                   'flex-1 flex-row items-center justify-center gap-2 rounded-lg border p-3',
-                  type === t.value
+                  type === txType.value
                     ? 'border-primary bg-primary/10'
                     : 'border-border bg-card',
                 )}
               >
                 <Icon
-                  as={t.icon}
+                  as={txType.icon}
                   size={16}
-                  className={type === t.value ? 'text-primary' : 'text-muted-foreground'}
+                  className={type === txType.value ? 'text-primary' : 'text-muted-foreground'}
                 />
                 <Text
                   className={cn(
                     'text-xs font-medium',
-                    type === t.value ? 'text-primary' : 'text-muted-foreground',
+                    type === txType.value ? 'text-primary' : 'text-muted-foreground',
                   )}
                 >
-                  {t.label}
+                  {t(txType.labelKey)}
                 </Text>
               </Pressable>
             ))}
@@ -110,7 +113,7 @@ export function TransactionForm({ onSuccess, className }: TransactionFormProps) 
 
         {/* Amount */}
         <View>
-          <Text className="mb-2 text-sm font-medium text-foreground">Amount</Text>
+          <Text className="mb-2 text-sm font-medium text-foreground">{t('amount')}</Text>
           <TextInput
             value={amount}
             onChangeText={setAmount}
@@ -129,11 +132,11 @@ export function TransactionForm({ onSuccess, className }: TransactionFormProps) 
 
         {/* Description */}
         <View>
-          <Text className="mb-2 text-sm font-medium text-foreground">Description</Text>
+          <Text className="mb-2 text-sm font-medium text-foreground">{t('description')}</Text>
           <TextInput
             value={description}
             onChangeText={setDescription}
-            placeholder="What was this for?"
+            placeholder={t('descriptionPlaceholder')}
             className={cn(
               'rounded-lg border bg-card px-4 py-3 text-base text-foreground',
               errors.description ? 'border-destructive' : 'border-border',
@@ -147,7 +150,7 @@ export function TransactionForm({ onSuccess, className }: TransactionFormProps) 
 
         {/* Account Selector */}
         <View>
-          <Text className="mb-2 text-sm font-medium text-foreground">Account</Text>
+          <Text className="mb-2 text-sm font-medium text-foreground">{t('account')}</Text>
           {errors.accountId && (
             <Text className="mb-1 text-xs text-destructive">{errors.accountId}</Text>
           )}
@@ -178,11 +181,11 @@ export function TransactionForm({ onSuccess, className }: TransactionFormProps) 
 
         {/* Notes */}
         <View>
-          <Text className="mb-2 text-sm font-medium text-foreground">Notes (optional)</Text>
+          <Text className="mb-2 text-sm font-medium text-foreground">{t('notes')}</Text>
           <TextInput
             value={notes}
             onChangeText={setNotes}
-            placeholder="Additional details..."
+            placeholder={t('notesPlaceholder')}
             multiline
             numberOfLines={3}
             className="rounded-lg border border-border bg-card px-4 py-3 text-base text-foreground"
@@ -198,7 +201,7 @@ export function TransactionForm({ onSuccess, className }: TransactionFormProps) 
           className="mt-2"
         >
           <Text className="text-sm font-medium text-primary-foreground">
-            {createTransaction.isPending ? 'Saving...' : 'Add Transaction'}
+            {createTransaction.isPending ? t('saving') : t('addTransaction')}
           </Text>
         </Button>
       </View>

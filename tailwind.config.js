@@ -222,6 +222,13 @@ module.exports = {
         'priority-high': 'hsl(var(--priority-high))',
         'priority-medium': 'hsl(var(--priority-medium))',
         'priority-low': 'hsl(var(--priority-low))',
+        xp: {
+          DEFAULT: 'hsl(var(--xp))',
+          glow: 'hsl(var(--xp-glow))',
+        },
+        'streak-fire': 'hsl(var(--streak-fire))',
+        'streak-legendary': 'hsl(var(--streak-legendary))',
+        'level-gold': 'hsl(var(--level-gold))',
       },
       fontFamily: {
         heading: undefined,

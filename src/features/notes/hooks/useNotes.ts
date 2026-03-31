@@ -3,7 +3,7 @@ import { queryKeys } from '@shared/api/queryKeys';
 import { notesService } from '../services/notesService';
 import type { Note, NoteCategory } from '@shared/types/models';
 
-export function useNotes(params?: { search?: string; categoryId?: string }) {
+export function useNotes(params?: { search?: string; categoryId?: string; isArchived?: boolean }) {
   return useQuery({
     queryKey: [...queryKeys.notes.all, params],
     queryFn: () => notesService.getNotes(params),
