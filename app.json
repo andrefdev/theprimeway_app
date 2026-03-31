@@ -35,7 +35,7 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "package": "app.theprimeway.twa",
-      "versionCode": 1,
+      "versionCode": 10,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#280FFB"
