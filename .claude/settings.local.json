@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__claude_ai_Atlassian_Rovo__getVisibleJiraProjects",
+      "mcp__claude_ai_Atlassian_Rovo__getAccessibleAtlassianResources",
+      "mcp__claude_ai_Atlassian_Rovo__searchJiraIssuesUsingJql",
+      "mcp__claude_ai_Atlassian_Rovo__getJiraIssue",
+      "Bash(ls -la \"C:\\\\Users\\\\andre\\\\Documents\\\\theprimeway\\\\web_y_mobile\\\\theprimeway_app/app/\\(app\\)\")",
+      "Bash(ls -la \"C:\\\\Users\\\\andre\\\\Documents\\\\theprimeway\\\\web_y_mobile\\\\theprimeway_app/app/\\(app\\)/\\(tabs\\)\")",
+      "mcp__claude_ai_Atlassian_Rovo__getTransitionsForJiraIssue",
+      "mcp__claude_ai_Atlassian_Rovo__transitionJiraIssue"
+    ]
+  }
+}
