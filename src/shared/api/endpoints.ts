@@ -8,6 +8,8 @@ export const AUTH = {
   ME: '/api/auth/mobile/me',
   REQUEST_OTP: '/api/auth/register/request-otp',
   VERIFY_OTP: '/api/auth/register/verify-otp',
+  GITHUB_DEVICE_CODE: '/api/auth/mobile/github/device-code',
+  GITHUB_DEVICE_TOKEN: '/api/auth/mobile/github/device-token',
 } as const;
 
 // Tasks
