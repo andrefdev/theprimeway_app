@@ -2,7 +2,7 @@
   "expo": {
     "name": "The Prime Way",
     "slug": "theprimeway",
-    "version": "2.0.0",
+    "version": "1.5.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "theprimeway",
@@ -14,9 +14,9 @@
       "backgroundColor": "#280FFB"
     },
     "ios": {
-      "supportsTablet": false,
+      "supportsTablet": true,
       "bundleIdentifier": "com.indrox.theprimeway",
-      "buildNumber": "1",
+      "buildNumber": "9",
       "associatedDomains": [
         "applinks:theprimeway.com",
         "applinks:app.theprimeway.app"
@@ -35,10 +35,10 @@
     "android": {
       "edgeToEdgeEnabled": true,
       "package": "app.theprimeway.twa",
-      "versionCode": 10,
+      "versionCode": 12,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
-        "backgroundColor": "#280FFB"
+        "backgroundColor": "#1a08c7"
       },
       "intentFilters": [
         {
@@ -97,6 +97,7 @@
       "expo-calendar",
       "expo-localization",
       "expo-web-browser",
+      "@react-native-google-signin/google-signin",
       [
         "expo-build-properties",
         {
