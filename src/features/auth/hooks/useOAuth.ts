@@ -3,22 +3,33 @@ import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import { useAuthStore } from '@shared/stores/authStore';
 import { Platform } from 'react-native';
-import {
-  GoogleSignin,
-  isSuccessResponse,
-  statusCodes,
-} from '@react-native-google-signin/google-signin';
-
 // Ensure browser sessions complete correctly
 WebBrowser.maybeCompleteAuthSession();
 
-// Configure Google Sign-In once
-GoogleSignin.configure({
-  webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
-  iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
-  offlineAccess: false,
-  scopes: ['email', 'profile'],
-});
+// Lazy-load native Google Sign-In (crashes in Expo Go, works in dev builds & production)
+let GoogleSigninModule: typeof import('@react-native-google-signin/google-signin') | null = null;
+let googleConfigured = false;
+
+function getGoogleSignin() {
+  if (!GoogleSigninModule) {
+    try {
+      GoogleSigninModule = require('@react-native-google-signin/google-signin');
+    } catch {
+      console.warn('[OAuth] @react-native-google-signin not available (Expo Go?)');
+      return null;
+    }
+  }
+  if (!googleConfigured && GoogleSigninModule) {
+    GoogleSigninModule.GoogleSignin.configure({
+      webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+      iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+      offlineAccess: false,
+      scopes: ['email', 'profile'],
+    });
+    googleConfigured = true;
+  }
+  return GoogleSigninModule;
+}
 
 /**
  * Google One Tap / Native Sign-In — no browser redirect needed.
@@ -30,10 +41,16 @@ export function useGoogleAuth() {
   const signIn = useCallback(async () => {
     setIsLoading(true);
     try {
-      await GoogleSignin.hasPlayServices();
-      const response = await GoogleSignin.signIn();
+      const mod = getGoogleSignin();
+      if (!mod) {
+        console.error('[OAuth] Google Sign-In not available in this environment');
+        return false;
+      }
 
-      if (isSuccessResponse(response)) {
+      await mod.GoogleSignin.hasPlayServices();
+      const response = await mod.GoogleSignin.signIn();
+
+      if (mod.isSuccessResponse(response)) {
         const idToken = response.data?.idToken;
         if (idToken) {
           await loginWithOAuth('google', idToken);
@@ -42,9 +59,9 @@ export function useGoogleAuth() {
       }
       return false;
     } catch (error: any) {
-      if (error?.code === statusCodes.SIGN_IN_CANCELLED) {
+      if (error?.code === 'SIGN_IN_CANCELLED') {
         // User cancelled — not an error
-      } else if (error?.code === statusCodes.IN_PROGRESS) {
+      } else if (error?.code === 'IN_PROGRESS') {
         console.warn('[OAuth] Google sign-in already in progress');
       } else {
         console.error('[OAuth] Google sign-in error:', error);
