@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
-import * as AuthSession from 'expo-auth-session';
+import { useCallback, useState } from 'react';
 import * as WebBrowser from 'expo-web-browser';
+import { Linking } from 'react-native';
 import { useAuthStore } from '@shared/stores/authStore';
 import { Platform } from 'react-native';
+
 // Ensure browser sessions complete correctly
 WebBrowser.maybeCompleteAuthSession();
 
@@ -32,7 +33,8 @@ function getGoogleSignin() {
 }
 
 /**
- * Google One Tap / Native Sign-In — no browser redirect needed.
+ * Google One Tap / Native Sign-In.
+ * Signs out first to always show account picker.
  */
 export function useGoogleAuth() {
   const loginWithOAuth = useAuthStore((s) => s.loginWithOAuth);
@@ -48,6 +50,14 @@ export function useGoogleAuth() {
       }
 
       await mod.GoogleSignin.hasPlayServices();
+
+      // Sign out first so the account picker always shows
+      try {
+        await mod.GoogleSignin.signOut();
+      } catch {
+        // Ignore — may not be signed in
+      }
+
       const response = await mod.GoogleSignin.signIn();
 
       if (mod.isSuccessResponse(response)) {
@@ -114,12 +124,10 @@ export function useAppleAuth() {
 }
 
 /**
- * GitHub OAuth via Device Flow — no redirect_uri needed.
- * Flow:
- * 1. App requests device_code from backend
- * 2. User opens verification_uri in browser and enters user_code
- * 3. App polls backend until user authorizes
- * 4. Backend returns access_token → app logs in via OAuth endpoint
+ * GitHub OAuth via Device Flow.
+ * 1. App gets device_code + user_code from backend
+ * 2. Opens GitHub verification page (non-blocking via Linking)
+ * 3. Polls backend until user authorizes
  */
 export function useGitHubAuth() {
   const loginWithOAuth = useAuthStore((s) => s.loginWithOAuth);
@@ -133,28 +141,46 @@ export function useGitHubAuth() {
       const { default: apiClient } = await import('@shared/api/client');
       const api = apiClient.getAxiosInstance();
 
-      // Step 1: Get device code
+      // Step 1: Get device code from backend
+      console.log('[OAuth] Requesting GitHub device code...');
       const { data: deviceData } = await api.post('/api/auth/mobile/github/device-code');
+      console.log('[OAuth] Device code response:', JSON.stringify(deviceData));
+
       const { device_code, user_code, verification_uri, interval = 5 } = deviceData;
+
+      if (!device_code || !user_code || !verification_uri) {
+        console.error('[OAuth] Invalid device code response:', deviceData);
+        return false;
+      }
 
       setUserCode(user_code);
 
-      // Open GitHub verification page
-      await WebBrowser.openBrowserAsync(verification_uri);
+      // Open GitHub verification page (non-blocking — Linking.openURL returns immediately)
+      await Linking.openURL(verification_uri);
 
-      // Step 2: Poll for token (max 2 minutes)
-      const maxAttempts = Math.ceil(120 / interval);
+      // Step 2: Poll for token (max 3 minutes)
+      const pollInterval = Math.max(interval, 5) * 1000;
+      const maxAttempts = Math.ceil(180000 / pollInterval);
+
       for (let i = 0; i < maxAttempts; i++) {
-        await new Promise((r) => setTimeout(r, interval * 1000));
+        await new Promise((r) => setTimeout(r, pollInterval));
 
         try {
           const { data: tokenData, status } = await api.post('/api/auth/mobile/github/device-token', {
             device_code,
           });
 
-          if (status === 202) continue; // authorization_pending
+          if (status === 202) continue;
           if (tokenData.error === 'authorization_pending') continue;
-          if (tokenData.error) break; // expired or denied
+          if (tokenData.error === 'slow_down') {
+            // GitHub asked us to slow down, wait extra
+            await new Promise((r) => setTimeout(r, 5000));
+            continue;
+          }
+          if (tokenData.error) {
+            console.error('[OAuth] GitHub device token error:', tokenData.error);
+            break;
+          }
 
           if (tokenData.access_token) {
             await loginWithOAuth('github', tokenData.access_token);
@@ -163,14 +189,15 @@ export function useGitHubAuth() {
           }
         } catch (pollError: any) {
           if (pollError?.response?.status === 202) continue;
+          console.error('[OAuth] GitHub poll error:', pollError?.message);
           break;
         }
       }
 
       setUserCode(null);
       return false;
-    } catch (error) {
-      console.error('[OAuth] GitHub sign-in error:', error);
+    } catch (error: any) {
+      console.error('[OAuth] GitHub sign-in error:', error?.message || error);
       setUserCode(null);
       return false;
     } finally {
